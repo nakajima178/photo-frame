@@ -26,6 +26,11 @@ h1{
 margin-bottom:20px;
 }
 
+/* ボタン */
+input{
+margin-bottom:20px;
+}
+
 /* プレビュー */
 .preview{
 position:relative;
@@ -74,12 +79,12 @@ pointer-events:none;
 
 <h1>Webフォトフレーム</h1>
 
+<!-- カメラ起動 -->
 <input
 type="file"
 id="upload"
-accept="image/*">
-
-<br><br>
+accept="image/*"
+capture="environment">
 
 <div class="preview">
 
