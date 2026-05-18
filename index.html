@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>フォトフレーム</title>
+
+<style>
+
+/* 全体 */
+body{
+margin:0;
+padding:20px;
+background:#f5f5f5;
+font-family:sans-serif;
+text-align:center;
+}
+
+/* タイトル */
+h1{
+margin-bottom:20px;
+}
+
+/* プレビュー */
+.preview{
+position:relative;
+
+width:90vw;
+height:90vw;
+
+max-width:400px;
+max-height:400px;
+
+margin:auto;
+
+background:white;
+
+overflow:hidden;
+
+border-radius:20px;
+
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+/* 写真 */
+#photo{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+/* フレーム */
+#frame{
+position:absolute;
+top:0;
+left:0;
+
+width:100%;
+height:100%;
+
+pointer-events:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Webフォトフレーム</h1>
+
+<input
+type="file"
+id="upload"
+accept="image/*">
+
+<br><br>
+
+<div class="preview">
+
+<img id="photo">
+
+<img
+id="frame"
+src="frame.png">
+
+</div>
+
+<script>
+
+const upload =
+document.getElementById("upload");
+
+const photo =
+document.getElementById("photo");
+
+upload.addEventListener(
+"change",
+(e)=>{
+
+const file =
+e.target.files[0];
+
+if(file){
+
+photo.src =
+URL.createObjectURL(file);
+
+}
+
+}
+);
+
+</script>
+
+</body>
+
+</html>
