@@ -1,4 +1,6 @@
-/* HTML取得 */
+/* ======================
+   HTML取得
+====================== */
 
 const video =
 document.getElementById("video");
@@ -6,17 +8,14 @@ document.getElementById("video");
 const frame =
 document.getElementById("frame");
 
+const character =
+document.getElementById("character");
+
 const captureBtn =
 document.getElementById("captureBtn");
 
 const changeCameraBtn =
 document.getElementById("changeCameraBtn");
-
-const count =
-document.getElementById("count");
-
-const flash =
-document.getElementById("flash");
 
 const canvas =
 document.getElementById("canvas");
@@ -33,13 +32,17 @@ document.getElementById("result");
 const closeBtn =
 document.getElementById("closeBtn");
 
-/* カメラ設定 */
+/* ======================
+   カメラ設定
+====================== */
 
 let cameraMode = "user";
 
 let stream;
 
-/* カメラ起動 */
+/* ======================
+   カメラ起動
+====================== */
 
 async function startCamera(){
 
@@ -77,7 +80,9 @@ alert("カメラが起動できません");
 
 startCamera();
 
-/* カメラ切替 */
+/* ======================
+   カメラ切替
+====================== */
 
 changeCameraBtn
 .addEventListener(
@@ -94,42 +99,85 @@ startCamera();
 }
 );
 
-/* 撮影 */
+/* ======================
+   キャラ移動
+====================== */
+
+let posX = 100;
+let posY = 200;
+
+let isDragging = false;
+
+let offsetX = 0;
+let offsetY = 0;
+
+/* 初期位置 */
+
+character.style.left =
+posX + "px";
+
+character.style.top =
+posY + "px";
+
+/* タッチ開始 */
+
+character.addEventListener(
+"touchstart",
+(e)=>{
+
+isDragging = true;
+
+offsetX =
+e.touches[0].clientX - posX;
+
+offsetY =
+e.touches[0].clientY - posY;
+
+}
+);
+
+/* 移動 */
+
+document.addEventListener(
+"touchmove",
+(e)=>{
+
+if(!isDragging) return;
+
+posX =
+e.touches[0].clientX - offsetX;
+
+posY =
+e.touches[0].clientY - offsetY;
+
+character.style.left =
+posX + "px";
+
+character.style.top =
+posY + "px";
+
+}
+);
+
+/* タッチ終了 */
+
+document.addEventListener(
+"touchend",
+()=>{
+
+isDragging = false;
+
+}
+);
+
+/* ======================
+   撮影
+====================== */
 
 captureBtn
 .addEventListener(
 "click",
-
-async ()=>{
-
-count.style.display = "block";
-
-/* 3秒カウント */
-
-for(let i=3;i>=1;i--){
-
-count.textContent = i;
-
-await new Promise(
-resolve =>
-setTimeout(resolve,1000)
-);
-
-}
-
-/* カウント消す */
-
-count.style.display = "none";
-
-/* フラッシュ */
-
-flash.style.opacity = "1";
-
-setTimeout(()=>{
-
-flash.style.opacity = "0";
-
-},100);
+()=>{
 
 /* canvasサイズ */
 
@@ -147,6 +195,16 @@ video,
 0,
 canvas.width,
 canvas.height
+);
+
+/* キャラ描画 */
+
+ctx.drawImage(
+character,
+posX,
+posY,
+character.width,
+character.height
 );
 
 /* フレーム描画 */
@@ -175,7 +233,9 @@ modal.style.display = "flex";
 }
 );
 
-/* 閉じる */
+/* ======================
+   モーダル閉じる
+====================== */
 
 closeBtn
 .addEventListener(
@@ -183,76 +243,6 @@ closeBtn
 ()=>{
 
 modal.style.display = "none";
-
-}
-);
-
-/* ======================
-   キャラ移動
-====================== */
-
-const character =
-document.getElementById("character");
-
-/* 位置 */
-let posX = 100;
-let posY = 200;
-
-/* ドラッグ中 */
-let isDragging = false;
-
-/* 指との差 */
-let offsetX = 0;
-let offsetY = 0;
-
-/* タッチ開始 */
-
-character.addEventListener(
-"touchstart",
-(e)=>{
-
-isDragging = true;
-
-offsetX =
-e.touches[0].clientX - posX;
-
-offsetY =
-e.touches[0].clientY - posY;
-
-}
-);
-
-/* タッチ移動 */
-
-document.addEventListener(
-"touchmove",
-(e)=>{
-
-if(!isDragging) return;
-
-posX =
-e.touches[0].clientX - offsetX;
-
-posY =
-e.touches[0].clientY - offsetY;
-
-/* 移動 */
-character.style.left =
-posX + "px";
-
-character.style.top =
-posY + "px";
-
-}
-);
-
-/* タッチ終了 */
-
-document.addEventListener(
-"touchend",
-()=>{
-
-isDragging = false;
 
 }
 );
