@@ -10,247 +10,38 @@ content="width=device-width, initial-scale=1.0">
 
 <title>Webフォトブース</title>
 
-<style>
-
-/* ======================
-   全体設定
-====================== */
-
-body{
-margin:0;
-overflow:hidden;
-font-family:sans-serif;
-background:black;
-}
-
-/* ======================
-   カメラ画面
-====================== */
-
-.camera-area{
-position:fixed;
-
-top:0;
-left:0;
-
-width:100vw;
-height:100vh;
-
-overflow:hidden;
-}
-
-/* カメラ映像 */
-#video{
-width:100%;
-height:100%;
-
-object-fit:cover;
-}
-
-/* フレーム画像 */
-#frame{
-position:absolute;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-object-fit:cover;
-
-pointer-events:none;
-}
-
-/* ======================
-   下ボタン
-====================== */
-
-.controls{
-position:fixed;
-
-bottom:20px;
-left:0;
-
-width:100%;
-
-display:flex;
-
-justify-content:space-around;
-align-items:center;
-
-z-index:10;
-}
-
-/* 丸ボタン */
-.circle-btn{
-
-width:70px;
-height:70px;
-
-border-radius:50%;
-
-border:none;
-
-font-size:28px;
-
-background:white;
-}
-
-/* シャッター */
-.shutter-btn{
-
-width:90px;
-height:90px;
-
-border-radius:50%;
-
-border:none;
-
-background:white;
-
-border:6px solid #ddd;
-}
-
-/* ======================
-   カウントダウン
-====================== */
-
-#count{
-position:fixed;
-
-top:50%;
-left:50%;
-
-transform:translate(-50%,-50%);
-
-font-size:120px;
-font-weight:bold;
-
-color:white;
-
-display:none;
-
-z-index:100;
-}
-
-/* ======================
-   フラッシュ
-====================== */
-
-#flash{
-
-position:fixed;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-background:white;
-
-opacity:0;
-
-pointer-events:none;
-
-z-index:200;
-}
-
-/* ======================
-   撮影後モーダル
-====================== */
-
-.modal{
-
-position:fixed;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-background:rgba(0,0,0,0.7);
-
-display:none;
-
-justify-content:center;
-align-items:center;
-
-z-index:300;
-}
-
-/* 白いボックス */
-.modal-content{
-
-width:85%;
-max-width:400px;
-
-background:white;
-
-border-radius:20px;
-
-padding:20px;
-
-text-align:center;
-}
-
-/* 完成画像 */
-#result{
-width:100%;
-
-border-radius:10px;
-}
-
-/* 閉じるボタン */
-.close-btn{
-
-margin-top:20px;
-
-padding:12px 24px;
-
-border:none;
-
-border-radius:10px;
-
-background:orange;
-
-color:white;
-
-font-size:18px;
-}
-
-</style>
+<!-- CSS読み込み -->
+<link
+rel="stylesheet"
+href="style.css">
 
 </head>
 
 <body>
 
-<!-- ======================
-     カメラ画面
-====================== -->
-
+<!-- カメラ画面 -->
 <div class="camera-area">
 
-<!-- カメラ映像 -->
+<!-- カメラ -->
 <video
 id="video"
 autoplay
 playsinline>
 </video>
 
-<!-- フレーム -->
+<!-- 動かせるキャラ -->
+<img
+id="character"
+src="character.png">
+
+<!-- 固定フレーム -->
 <img
 id="frame"
 src="frame.png">
 
 </div>
 
-<!-- ======================
-     ボタン
-====================== -->
-
+<!-- ボタン -->
 <div class="controls">
 
 <!-- やり直し -->
@@ -275,25 +66,16 @@ id="changeCameraBtn">
 
 </div>
 
-<!-- ======================
-     カウント
-====================== -->
-
+<!-- カウント -->
 <div id="count">
 3
 </div>
 
-<!-- ======================
-     フラッシュ
-====================== -->
-
+<!-- フラッシュ -->
 <div id="flash">
 </div>
 
-<!-- ======================
-     保存画面
-====================== -->
-
+<!-- 保存画面 -->
 <div
 class="modal"
 id="modal">
@@ -318,220 +100,14 @@ id="closeBtn">
 
 </div>
 
-<!-- ======================
-     非表示canvas
-====================== -->
-
+<!-- canvas -->
 <canvas
 id="canvas"
 style="display:none;">
 </canvas>
 
-<script>
-
-/* ======================
-   HTML取得
-====================== */
-
-const video =
-document.getElementById("video");
-
-const frame =
-document.getElementById("frame");
-
-const captureBtn =
-document.getElementById("captureBtn");
-
-const changeCameraBtn =
-document.getElementById("changeCameraBtn");
-
-const retryBtn =
-document.getElementById("retryBtn");
-
-const count =
-document.getElementById("count");
-
-const flash =
-document.getElementById("flash");
-
-const canvas =
-document.getElementById("canvas");
-
-const ctx =
-canvas.getContext("2d");
-
-const modal =
-document.getElementById("modal");
-
-const result =
-document.getElementById("result");
-
-const closeBtn =
-document.getElementById("closeBtn");
-
-/* ======================
-   カメラ設定
-====================== */
-
-/* 初期は内カメ */
-let cameraMode = "user";
-
-/* カメラ映像保存 */
-let stream;
-
-/* ======================
-   カメラ起動
-====================== */
-
-async function startCamera(){
-
-/* 前回カメラ停止 */
-if(stream){
-
-stream.getTracks().forEach(
-track => track.stop()
-);
-
-}
-
-try{
-
-/* カメラ取得 */
-stream =
-await navigator.mediaDevices
-.getUserMedia({
-
-video:{
-facingMode:cameraMode
-}
-
-});
-
-/* videoへセット */
-video.srcObject = stream;
-
-}catch(error){
-
-alert("カメラが起動できません");
-
-}
-
-}
-
-/* 最初に起動 */
-startCamera();
-
-/* ======================
-   カメラ切替
-====================== */
-
-changeCameraBtn
-.addEventListener(
-"click",
-()=>{
-
-/* user ↔ environment */
-cameraMode =
-cameraMode === "user"
-? "environment"
-: "user";
-
-/* 再起動 */
-startCamera();
-
-}
-);
-
-/* ======================
-   撮影
-====================== */
-
-captureBtn
-.addEventListener(
-"click",
-
-async ()=>{
-
-/* カウント表示 */
-count.style.display = "block";
-
-/* 3秒 */
-for(let i=3;i>=1;i--){
-
-count.textContent = i;
-
-await new Promise(
-resolve =>
-setTimeout(resolve,1000)
-);
-
-}
-
-/* カウント消す */
-count.style.display = "none";
-
-/* フラッシュ */
-flash.style.opacity = "1";
-
-setTimeout(()=>{
-
-flash.style.opacity = "0";
-
-},100);
-
-/* canvasサイズ */
-canvas.width =
-video.videoWidth;
-
-canvas.height =
-video.videoHeight;
-
-/* カメラ描画 */
-ctx.drawImage(
-video,
-0,
-0,
-canvas.width,
-canvas.height
-);
-
-/* フレーム描画 */
-ctx.drawImage(
-frame,
-0,
-0,
-canvas.width,
-canvas.height
-);
-
-/* 完成画像 */
-const image =
-canvas.toDataURL("image/png");
-
-/* 表示 */
-result.src = image;
-
-/* モーダル表示 */
-modal.style.display = "flex";
-
-}
-);
-
-/* ======================
-   モーダル閉じる
-====================== */
-
-closeBtn
-.addEventListener(
-"click",
-()=>{
-
-modal.style.display = "none";
-
-}
-);
-
-</script>
+<!-- JS -->
+<script src="script.js"></script>
 
 </body>
 
