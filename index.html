@@ -66,6 +66,20 @@ border:none;
 border-radius:10px;
 background:#333;
 color:white;
+cursor:pointer;
+transition:background 0.3s;
+}
+
+button:active{
+background:#555;
+}
+
+/* メッセージ */
+#message{
+margin-top:20px;
+font-size:16px;
+color:#333;
+min-height:20px;
 }
 
 </style>
@@ -96,6 +110,9 @@ src="frame.png">
 撮影して保存
 </button>
 
+<!-- メッセージ表示 -->
+<div id="message"></div>
+
 <!-- 非表示canvas -->
 <canvas
 id="canvas"
@@ -116,24 +133,40 @@ document.getElementById("capture");
 const ctx =
 canvas.getContext("2d");
 
+const message =
+document.getElementById("message");
+
+/* メッセージ表示関数 */
+function showMessage(text, duration = 3000){
+message.textContent = text;
+setTimeout(() => {
+message.textContent = "";
+}, duration);
+}
+
 /* カメラ起動 */
 navigator.mediaDevices
 .getUserMedia({
 video:{
-facingMode:"user"
+facingMode:"user",
+width:{ideal:1280},
+height:{ideal:720}
 }
 })
 .then((stream)=>{
-
 video.srcObject = stream;
-
+showMessage("カメラが起動しました");
+})
+.catch((error)=>{
+console.error("カメラエラー:", error);
+showMessage("❌ カメラへのアクセスが拒否されました");
+capture.disabled = true;
 });
 
 /* 撮影 */
 capture.addEventListener(
 "click",
 ()=>{
-
 /* canvasサイズ */
 canvas.width =
 video.videoWidth;
@@ -168,12 +201,14 @@ const link =
 document.createElement("a");
 
 link.download =
-"photo.png";
+"photo_" + new Date().getTime() + ".png";
 
 link.href =
 canvas.toDataURL("image/png");
 
 link.click();
+
+showMessage("✓ 写真を保存しました");
 
 }
 );
