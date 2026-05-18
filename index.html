@@ -2,37 +2,25 @@
 <html lang="ja">
 
 <head>
-
 <meta charset="UTF-8">
 
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>フォトフレーム</title>
+<title>Webフォトフレーム</title>
 
 <style>
 
-/* 全体 */
 body{
 margin:0;
 padding:20px;
+text-align:center;
 background:#f5f5f5;
 font-family:sans-serif;
-text-align:center;
 }
 
-/* タイトル */
-h1{
-margin-bottom:20px;
-}
-
-/* ボタン */
-input{
-margin-bottom:20px;
-}
-
-/* プレビュー */
-.preview{
+/* カメラエリア */
+.camera-container{
 position:relative;
 
 width:90vw;
@@ -43,17 +31,15 @@ max-height:400px;
 
 margin:auto;
 
-background:white;
-
 overflow:hidden;
 
 border-radius:20px;
 
-box-shadow:0 0 10px rgba(0,0,0,0.2);
+background:black;
 }
 
-/* 写真 */
-#photo{
+/* カメラ映像 */
+video{
 width:100%;
 height:100%;
 object-fit:cover;
@@ -71,52 +57,123 @@ height:100%;
 pointer-events:none;
 }
 
-</style>
+/* ボタン */
+button{
+margin-top:20px;
+padding:12px 24px;
+font-size:18px;
+border:none;
+border-radius:10px;
+background:#333;
+color:white;
+}
 
+</style>
 </head>
 
 <body>
 
 <h1>Webフォトフレーム</h1>
 
-<!-- カメラ起動 -->
-<input
-type="file"
-id="upload"
-accept="image/*"
-capture="environment">
+<div class="camera-container">
 
-<div class="preview">
+<!-- カメラ映像 -->
+<video
+id="video"
+autoplay
+playsinline>
+</video>
 
-<img id="photo">
-
+<!-- フレーム -->
 <img
 id="frame"
 src="frame.png">
 
 </div>
 
+<!-- 撮影 -->
+<button id="capture">
+撮影して保存
+</button>
+
+<!-- 非表示canvas -->
+<canvas
+id="canvas"
+style="display:none;">
+</canvas>
+
 <script>
 
-const upload =
-document.getElementById("upload");
+const video =
+document.getElementById("video");
 
-const photo =
-document.getElementById("photo");
+const canvas =
+document.getElementById("canvas");
 
-upload.addEventListener(
-"change",
-(e)=>{
+const capture =
+document.getElementById("capture");
 
-const file =
-e.target.files[0];
+const ctx =
+canvas.getContext("2d");
 
-if(file){
-
-photo.src =
-URL.createObjectURL(file);
-
+/* カメラ起動 */
+navigator.mediaDevices
+.getUserMedia({
+video:{
+facingMode:"user"
 }
+})
+.then((stream)=>{
+
+video.srcObject = stream;
+
+});
+
+/* 撮影 */
+capture.addEventListener(
+"click",
+()=>{
+
+/* canvasサイズ */
+canvas.width =
+video.videoWidth;
+
+canvas.height =
+video.videoHeight;
+
+/* カメラ描画 */
+ctx.drawImage(
+video,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+/* フレーム取得 */
+const frame =
+document.getElementById("frame");
+
+/* フレーム描画 */
+ctx.drawImage(
+frame,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+/* 保存 */
+const link =
+document.createElement("a");
+
+link.download =
+"photo.png";
+
+link.href =
+canvas.toDataURL("image/png");
+
+link.click();
 
 }
 );
@@ -124,5 +181,4 @@ URL.createObjectURL(file);
 </script>
 
 </body>
-
 </html>
