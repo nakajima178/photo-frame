@@ -7,35 +7,28 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>Webフォトフレーム</title>
+<title>Webフォトブース</title>
 
 <style>
 
+/* 全体 */
 body{
 margin:0;
-padding:20px;
-text-align:center;
-background:#f5f5f5;
+overflow:hidden;
 font-family:sans-serif;
+background:black;
 }
 
-/* カメラエリア */
-.camera-container{
-position:relative;
+/* カメラ全画面 */
+.camera-area{
+position:fixed;
+top:0;
+left:0;
 
-width:90vw;
-height:90vw;
-
-max-width:400px;
-max-height:400px;
-
-margin:auto;
+width:100vw;
+height:100vh;
 
 overflow:hidden;
-
-border-radius:20px;
-
-background:black;
 }
 
 /* カメラ映像 */
@@ -55,31 +48,144 @@ width:100%;
 height:100%;
 
 pointer-events:none;
+object-fit:cover;
 }
 
-/* ボタン */
-button{
-margin-top:20px;
-padding:12px 24px;
-font-size:18px;
+/* 下ボタンエリア */
+.controls{
+position:fixed;
+bottom:20px;
+left:0;
+
+width:100%;
+
+display:flex;
+justify-content:space-around;
+align-items:center;
+
+z-index:10;
+}
+
+/* 丸ボタン */
+.circle-btn{
+width:70px;
+height:70px;
+
+border-radius:50%;
+
+background:white;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+font-size:30px;
+
 border:none;
+}
+
+/* シャッターボタン */
+.shutter{
+width:90px;
+height:90px;
+
+border-radius:50%;
+
+background:white;
+
+border:6px solid #ddd;
+}
+
+/* モーダル背景 */
+.modal{
+position:fixed;
+top:0;
+left:0;
+
+width:100%;
+height:100%;
+
+background:rgba(0,0,0,0.7);
+
+display:none;
+
+justify-content:center;
+align-items:center;
+
+z-index:100;
+}
+
+/* 白画面 */
+.modal-content{
+width:85%;
+max-width:400px;
+
+background:white;
+
+border-radius:20px;
+
+padding:20px;
+
+text-align:center;
+}
+
+/* 保存画像 */
+#result{
+width:100%;
 border-radius:10px;
-background:#333;
-color:white;
-cursor:pointer;
-transition:background 0.3s;
 }
 
-button:active{
-background:#555;
-}
-
-/* メッセージ */
-#message{
+/* 閉じる */
+.close-btn{
 margin-top:20px;
-font-size:16px;
-color:#333;
-min-height:20px;
+
+padding:12px 24px;
+
+border:none;
+
+border-radius:10px;
+
+background:#f0a040;
+
+color:white;
+
+font-size:18px;
+}
+
+/* カウント */
+.count{
+position:fixed;
+top:50%;
+left:50%;
+
+transform:translate(-50%,-50%);
+
+font-size:120px;
+font-weight:bold;
+
+color:white;
+
+z-index:200;
+
+display:none;
+}
+
+/* フラッシュ */
+.flash{
+position:fixed;
+top:0;
+left:0;
+
+width:100%;
+height:100%;
+
+background:white;
+
+opacity:0;
+
+pointer-events:none;
+
+z-index:300;
 }
 
 </style>
@@ -87,33 +193,78 @@ min-height:20px;
 
 <body>
 
-<h1>Webフォトフレーム</h1>
+<!-- カメラ -->
+<div class="camera-area">
 
-<div class="camera-container">
-
-<!-- カメラ映像 -->
 <video
 id="video"
 autoplay
 playsinline>
 </video>
 
-<!-- フレーム -->
 <img
 id="frame"
 src="frame.png">
 
 </div>
 
-<!-- 撮影 -->
-<button id="capture">
-撮影して保存
+<!-- ボタン -->
+<div class="controls">
+
+<button
+class="circle-btn"
+id="retry">
+↺
 </button>
 
-<!-- メッセージ表示 -->
-<div id="message"></div>
+<button
+class="shutter"
+id="capture">
+</button>
 
-<!-- 非表示canvas -->
+<button
+class="circle-btn"
+id="changeCamera">
+⇄
+</button>
+
+</div>
+
+<!-- カウント -->
+<div
+class="count"
+id="count">
+3
+</div>
+
+<!-- フラッシュ -->
+<div
+class="flash"
+id="flash">
+</div>
+
+<!-- モーダル -->
+<div
+class="modal"
+id="modal">
+
+<div class="modal-content">
+
+<img id="result">
+
+<h2>画像を長押しして保存</h2>
+
+<button
+class="close-btn"
+id="closeModal">
+閉じる
+</button>
+
+</div>
+
+</div>
+
+<!-- canvas -->
 <canvas
 id="canvas"
 style="display:none;">
@@ -127,46 +278,102 @@ document.getElementById("video");
 const canvas =
 document.getElementById("canvas");
 
-const capture =
-document.getElementById("capture");
-
 const ctx =
 canvas.getContext("2d");
 
-const message =
-document.getElementById("message");
+const capture =
+document.getElementById("capture");
 
-/* メッセージ表示関数 */
-function showMessage(text, duration = 3000){
-message.textContent = text;
-setTimeout(() => {
-message.textContent = "";
-}, duration);
-}
+const result =
+document.getElementById("result");
+
+const modal =
+document.getElementById("modal");
+
+const closeModal =
+document.getElementById("closeModal");
+
+const count =
+document.getElementById("count");
+
+const flash =
+document.getElementById("flash");
+
+const frame =
+document.getElementById("frame");
+
+const changeCamera =
+document.getElementById("changeCamera");
+
+let facingMode = "user";
+
+let stream;
 
 /* カメラ起動 */
-navigator.mediaDevices
+async function startCamera(){
+
+if(stream){
+stream.getTracks().forEach(
+track => track.stop()
+);
+}
+
+stream =
+await navigator.mediaDevices
 .getUserMedia({
 video:{
-facingMode:"user",
-width:{ideal:1280},
-height:{ideal:720}
+facingMode:facingMode
 }
-})
-.then((stream)=>{
-video.srcObject = stream;
-showMessage("カメラが起動しました");
-})
-.catch((error)=>{
-console.error("カメラエラー:", error);
-showMessage("❌ カメラへのアクセスが拒否されました");
-capture.disabled = true;
 });
+
+video.srcObject = stream;
+
+}
+
+startCamera();
+
+/* カメラ切替 */
+changeCamera.addEventListener(
+"click",
+()=>{
+
+facingMode =
+facingMode === "user"
+? "environment"
+: "user";
+
+startCamera();
+
+}
+);
 
 /* 撮影 */
 capture.addEventListener(
 "click",
-()=>{
+async ()=>{
+
+/* カウント */
+count.style.display = "block";
+
+for(let i=3;i>=1;i--){
+
+count.textContent = i;
+
+await new Promise(
+r => setTimeout(r,1000)
+);
+
+}
+
+count.style.display = "none";
+
+/* フラッシュ */
+flash.style.opacity = "1";
+
+setTimeout(()=>{
+flash.style.opacity = "0";
+},100);
+
 /* canvasサイズ */
 canvas.width =
 video.videoWidth;
@@ -183,10 +390,6 @@ canvas.width,
 canvas.height
 );
 
-/* フレーム取得 */
-const frame =
-document.getElementById("frame");
-
 /* フレーム描画 */
 ctx.drawImage(
 frame,
@@ -196,19 +399,24 @@ canvas.width,
 canvas.height
 );
 
-/* 保存 */
-const link =
-document.createElement("a");
-
-link.download =
-"photo_" + new Date().getTime() + ".png";
-
-link.href =
+/* 保存画像 */
+const image =
 canvas.toDataURL("image/png");
 
-link.click();
+result.src = image;
 
-showMessage("✓ 写真を保存しました");
+/* モーダル表示 */
+modal.style.display = "flex";
+
+}
+);
+
+/* 閉じる */
+closeModal.addEventListener(
+"click",
+()=>{
+
+modal.style.display = "none";
 
 }
 );
