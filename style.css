@@ -1,4 +1,6 @@
-/* 全体 */
+/* ======================
+   全体
+====================== */
 
 body{
 margin:0;
@@ -7,9 +9,12 @@ font-family:sans-serif;
 background:black;
 }
 
-/* カメラ画面 */
+/* ======================
+   カメラ画面
+====================== */
 
 .camera-area{
+
 position:fixed;
 
 top:0;
@@ -24,15 +29,37 @@ overflow:hidden;
 /* カメラ映像 */
 
 #video{
+
 width:100%;
 height:100%;
 
 object-fit:cover;
 }
 
-/* フレーム */
+/* ======================
+   動かせるキャラ
+====================== */
+
+#character{
+
+position:absolute;
+
+top:200px;
+left:100px;
+
+width:120px;
+
+z-index:5;
+
+touch-action:none;
+}
+
+/* ======================
+   固定フレーム
+====================== */
 
 #frame{
+
 position:absolute;
 
 top:0;
@@ -44,11 +71,16 @@ height:100%;
 object-fit:cover;
 
 pointer-events:none;
+
+z-index:10;
 }
 
-/* ボタン */
+/* ======================
+   ボタン
+====================== */
 
 .controls{
+
 position:fixed;
 
 bottom:20px;
@@ -58,13 +90,15 @@ width:100%;
 
 display:flex;
 
-justify-content:space-around;
+justify-content:center;
 align-items:center;
 
-z-index:10;
+gap:20px;
+
+z-index:20;
 }
 
-/* 丸ボタン */
+/* カメラ切替 */
 
 .circle-btn{
 
@@ -80,7 +114,7 @@ font-size:28px;
 background:white;
 }
 
-/* シャッター */
+/* 撮影 */
 
 .shutter-btn{
 
@@ -96,48 +130,9 @@ background:white;
 border:6px solid #ddd;
 }
 
-/* カウント */
-
-#count{
-position:fixed;
-
-top:50%;
-left:50%;
-
-transform:translate(-50%,-50%);
-
-font-size:120px;
-font-weight:bold;
-
-color:white;
-
-display:none;
-
-z-index:100;
-}
-
-/* フラッシュ */
-
-#flash{
-
-position:fixed;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-background:white;
-
-opacity:0;
-
-pointer-events:none;
-
-z-index:200;
-}
-
-/* モーダル */
+/* ======================
+   保存画面
+====================== */
 
 .modal{
 
@@ -156,7 +151,7 @@ display:none;
 justify-content:center;
 align-items:center;
 
-z-index:300;
+z-index:100;
 }
 
 /* 白ボックス */
@@ -178,12 +173,13 @@ text-align:center;
 /* 完成画像 */
 
 #result{
+
 width:100%;
 
 border-radius:10px;
 }
 
-/* 閉じる */
+/* 閉じるボタン */
 
 .close-btn{
 
@@ -200,39 +196,4 @@ background:orange;
 color:white;
 
 font-size:18px;
-}
-
-/* 動かせるキャラ */
-
-#character{
-
-position:absolute;
-
-top:200px;
-left:100px;
-
-width:120px;
-
-z-index:5;
-
-touch-action:none;
-}
-
-/* 固定フレーム */
-
-#frame{
-
-position:absolute;
-
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-object-fit:cover;
-
-pointer-events:none;
-
-z-index:10;
 }
