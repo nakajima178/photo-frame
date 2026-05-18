@@ -322,7 +322,9 @@ stream =
 await navigator.mediaDevices
 .getUserMedia({
 video:{
-facingMode:facingMode
+facingMode:{
+exact:facingMode
+}
 }
 });
 
