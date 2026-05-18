@@ -2,6 +2,7 @@
 <html lang="ja">
 
 <head>
+
 <meta charset="UTF-8">
 
 <meta name="viewport"
@@ -11,7 +12,10 @@ content="width=device-width, initial-scale=1.0">
 
 <style>
 
-/* 全体 */
+/* ======================
+   全体設定
+====================== */
+
 body{
 margin:0;
 overflow:hidden;
@@ -19,9 +23,13 @@ font-family:sans-serif;
 background:black;
 }
 
-/* カメラ全画面 */
+/* ======================
+   カメラ画面
+====================== */
+
 .camera-area{
 position:fixed;
+
 top:0;
 left:0;
 
@@ -32,34 +40,42 @@ overflow:hidden;
 }
 
 /* カメラ映像 */
-video{
+#video{
 width:100%;
 height:100%;
+
 object-fit:cover;
 }
 
-/* フレーム */
+/* フレーム画像 */
 #frame{
 position:absolute;
+
 top:0;
 left:0;
 
 width:100%;
 height:100%;
 
-pointer-events:none;
 object-fit:cover;
+
+pointer-events:none;
 }
 
-/* 下ボタンエリア */
+/* ======================
+   下ボタン
+====================== */
+
 .controls{
 position:fixed;
+
 bottom:20px;
 left:0;
 
 width:100%;
 
 display:flex;
+
 justify-content:space-around;
 align-items:center;
 
@@ -68,37 +84,87 @@ z-index:10;
 
 /* 丸ボタン */
 .circle-btn{
+
 width:70px;
 height:70px;
 
 border-radius:50%;
 
-background:white;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-font-size:30px;
-
 border:none;
+
+font-size:28px;
+
+background:white;
 }
 
-/* シャッターボタン */
-.shutter{
+/* シャッター */
+.shutter-btn{
+
 width:90px;
 height:90px;
 
 border-radius:50%;
+
+border:none;
 
 background:white;
 
 border:6px solid #ddd;
 }
 
-/* モーダル背景 */
-.modal{
+/* ======================
+   カウントダウン
+====================== */
+
+#count{
 position:fixed;
+
+top:50%;
+left:50%;
+
+transform:translate(-50%,-50%);
+
+font-size:120px;
+font-weight:bold;
+
+color:white;
+
+display:none;
+
+z-index:100;
+}
+
+/* ======================
+   フラッシュ
+====================== */
+
+#flash{
+
+position:fixed;
+
+top:0;
+left:0;
+
+width:100%;
+height:100%;
+
+background:white;
+
+opacity:0;
+
+pointer-events:none;
+
+z-index:200;
+}
+
+/* ======================
+   撮影後モーダル
+====================== */
+
+.modal{
+
+position:fixed;
+
 top:0;
 left:0;
 
@@ -112,11 +178,12 @@ display:none;
 justify-content:center;
 align-items:center;
 
-z-index:100;
+z-index:300;
 }
 
-/* 白画面 */
+/* 白いボックス */
 .modal-content{
+
 width:85%;
 max-width:400px;
 
@@ -129,14 +196,16 @@ padding:20px;
 text-align:center;
 }
 
-/* 保存画像 */
+/* 完成画像 */
 #result{
 width:100%;
+
 border-radius:10px;
 }
 
-/* 閉じる */
+/* 閉じるボタン */
 .close-btn{
+
 margin-top:20px;
 
 padding:12px 24px;
@@ -145,105 +214,86 @@ border:none;
 
 border-radius:10px;
 
-background:#f0a040;
+background:orange;
 
 color:white;
 
 font-size:18px;
 }
 
-/* カウント */
-.count{
-position:fixed;
-top:50%;
-left:50%;
-
-transform:translate(-50%,-50%);
-
-font-size:120px;
-font-weight:bold;
-
-color:white;
-
-z-index:200;
-
-display:none;
-}
-
-/* フラッシュ */
-.flash{
-position:fixed;
-top:0;
-left:0;
-
-width:100%;
-height:100%;
-
-background:white;
-
-opacity:0;
-
-pointer-events:none;
-
-z-index:300;
-}
-
 </style>
+
 </head>
 
 <body>
 
-<!-- カメラ -->
+<!-- ======================
+     カメラ画面
+====================== -->
+
 <div class="camera-area">
 
+<!-- カメラ映像 -->
 <video
 id="video"
 autoplay
 playsinline>
 </video>
 
+<!-- フレーム -->
 <img
 id="frame"
 src="frame.png">
 
 </div>
 
-<!-- ボタン -->
+<!-- ======================
+     ボタン
+====================== -->
+
 <div class="controls">
 
+<!-- やり直し -->
 <button
 class="circle-btn"
-id="retry">
+id="retryBtn">
 ↺
 </button>
 
+<!-- 撮影 -->
 <button
-class="shutter"
-id="capture">
+class="shutter-btn"
+id="captureBtn">
 </button>
 
+<!-- カメラ切替 -->
 <button
 class="circle-btn"
-id="changeCamera">
+id="changeCameraBtn">
 ⇄
 </button>
 
 </div>
 
-<!-- カウント -->
-<div
-class="count"
-id="count">
+<!-- ======================
+     カウント
+====================== -->
+
+<div id="count">
 3
 </div>
 
-<!-- フラッシュ -->
-<div
-class="flash"
-id="flash">
+<!-- ======================
+     フラッシュ
+====================== -->
+
+<div id="flash">
 </div>
 
-<!-- モーダル -->
+<!-- ======================
+     保存画面
+====================== -->
+
 <div
 class="modal"
 id="modal">
@@ -252,19 +302,26 @@ id="modal">
 
 <img id="result">
 
-<h2>画像を長押しして保存</h2>
+<h2>
+画像を長押しして保存
+</h2>
 
 <button
 class="close-btn"
-id="closeModal">
+id="closeBtn">
+
 閉じる
+
 </button>
 
 </div>
 
 </div>
 
-<!-- canvas -->
+<!-- ======================
+     非表示canvas
+====================== -->
+
 <canvas
 id="canvas"
 style="display:none;">
@@ -272,26 +329,24 @@ style="display:none;">
 
 <script>
 
+/* ======================
+   HTML取得
+====================== */
+
 const video =
 document.getElementById("video");
 
-const canvas =
-document.getElementById("canvas");
+const frame =
+document.getElementById("frame");
 
-const ctx =
-canvas.getContext("2d");
+const captureBtn =
+document.getElementById("captureBtn");
 
-const capture =
-document.getElementById("capture");
+const changeCameraBtn =
+document.getElementById("changeCameraBtn");
 
-const result =
-document.getElementById("result");
-
-const modal =
-document.getElementById("modal");
-
-const closeModal =
-document.getElementById("closeModal");
+const retryBtn =
+document.getElementById("retryBtn");
 
 const count =
 document.getElementById("count");
@@ -299,81 +354,129 @@ document.getElementById("count");
 const flash =
 document.getElementById("flash");
 
-const frame =
-document.getElementById("frame");
+const canvas =
+document.getElementById("canvas");
 
-const changeCamera =
-document.getElementById("changeCamera");
+const ctx =
+canvas.getContext("2d");
 
-let facingMode = "user";
+const modal =
+document.getElementById("modal");
 
+const result =
+document.getElementById("result");
+
+const closeBtn =
+document.getElementById("closeBtn");
+
+/* ======================
+   カメラ設定
+====================== */
+
+/* 初期は内カメ */
+let cameraMode = "user";
+
+/* カメラ映像保存 */
 let stream;
 
-/* カメラ起動 */
+/* ======================
+   カメラ起動
+====================== */
+
 async function startCamera(){
 
+/* 前回カメラ停止 */
 if(stream){
+
 stream.getTracks().forEach(
 track => track.stop()
 );
+
 }
 
+try{
+
+/* カメラ取得 */
 stream =
 await navigator.mediaDevices
 .getUserMedia({
+
 video:{
-facingMode:{
-exact:facingMode
+facingMode:cameraMode
 }
-}
+
 });
 
+/* videoへセット */
 video.srcObject = stream;
+
+}catch(error){
+
+alert("カメラが起動できません");
 
 }
 
+}
+
+/* 最初に起動 */
 startCamera();
 
-/* カメラ切替 */
-changeCamera.addEventListener(
+/* ======================
+   カメラ切替
+====================== */
+
+changeCameraBtn
+.addEventListener(
 "click",
 ()=>{
 
-facingMode =
-facingMode === "user"
+/* user ↔ environment */
+cameraMode =
+cameraMode === "user"
 ? "environment"
 : "user";
 
+/* 再起動 */
 startCamera();
 
 }
 );
 
-/* 撮影 */
-capture.addEventListener(
+/* ======================
+   撮影
+====================== */
+
+captureBtn
+.addEventListener(
 "click",
+
 async ()=>{
 
-/* カウント */
+/* カウント表示 */
 count.style.display = "block";
 
+/* 3秒 */
 for(let i=3;i>=1;i--){
 
 count.textContent = i;
 
 await new Promise(
-r => setTimeout(r,1000)
+resolve =>
+setTimeout(resolve,1000)
 );
 
 }
 
+/* カウント消す */
 count.style.display = "none";
 
 /* フラッシュ */
 flash.style.opacity = "1";
 
 setTimeout(()=>{
+
 flash.style.opacity = "0";
+
 },100);
 
 /* canvasサイズ */
@@ -401,10 +504,11 @@ canvas.width,
 canvas.height
 );
 
-/* 保存画像 */
+/* 完成画像 */
 const image =
 canvas.toDataURL("image/png");
 
+/* 表示 */
 result.src = image;
 
 /* モーダル表示 */
@@ -413,8 +517,12 @@ modal.style.display = "flex";
 }
 );
 
-/* 閉じる */
-closeModal.addEventListener(
+/* ======================
+   モーダル閉じる
+====================== */
+
+closeBtn
+.addEventListener(
 "click",
 ()=>{
 
@@ -426,4 +534,5 @@ modal.style.display = "none";
 </script>
 
 </body>
+
 </html>
