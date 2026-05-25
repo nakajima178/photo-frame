@@ -343,3 +343,16 @@ dx * dx + dy * dy
 );
 
 }
+
+async function startCamera(){
+  // ...既存のコード...
+
+  video.srcObject = stream;
+
+  /* フロントカメラなら反転 */
+  if(cameraMode === "user"){
+    video.style.transform = "scaleX(-1)";
+  } else {
+    video.style.transform = "scaleX(1)";
+  }
+}
