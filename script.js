@@ -243,3 +243,11 @@ modal.style.display = "none";
 
 }
 );
+
+// 撮影時にフロントカメラなら反転
+if(cameraMode === "user"){
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+}
+ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+ctx.setTransform(1, 0, 0, 1, 0, 0); // リセット
