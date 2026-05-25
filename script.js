@@ -199,13 +199,10 @@ canvas.height
 
 /* キャラ描画 */
 
-ctx.drawImage(
-character,
-posX,
-posY,
-character.width,
-character.height
-);
+const scaleX = canvas.width / video.clientWidth;
+const scaleY = canvas.height / video.clientHeight;
+ctx.drawImage(character, posX * scaleX, posY * scaleY,
+  character.width * scaleX, character.height * scaleY);
 
 /* フレーム描画 */
 
