@@ -125,6 +125,9 @@ character.addEventListener(
 "touchstart",
 (e)=>{
 
+/* 指2本の時はドラッグしない */
+if(e.touches.length === 2) return;
+
 isDragging = true;
 
 offsetX =
@@ -185,9 +188,16 @@ canvas.width =
 video.videoWidth;
 
 canvas.height =
-video.videoHeight;
+video.clientHeight;
 
-/* カメラ描画 */
+/* カメラ描画（フロントカメラなら反転） */
+
+ctx.save();
+
+if(cameraMode === "user"){
+ctx.translate(canvas.width, 0);
+ctx.scale(-1, 1);
+}
 
 ctx.drawImage(
 video,
@@ -197,14 +207,19 @@ canvas.width,
 canvas.height
 );
 
+ctx.restore();
+
 /* キャラ描画 */
+
+const scaleX = canvas.width / video.clientWidth;
+const scaleY = canvas.height / video.clientHeight;
 
 ctx.drawImage(
 character,
-posX,
-posY,
-character.width,
-character.height
+posX * scaleX,
+posY * scaleY,
+character.width * scaleX,
+character.height * scaleY
 );
 
 /* フレーム描画 */
@@ -246,3 +261,85 @@ modal.style.display = "none";
 
 }
 );
+
+/* ======================
+   ピンチでサイズ変更
+====================== */
+
+let lastDistance = null;
+let currentSize = 120;
+
+document.addEventListener(
+"touchstart",
+(e)=>{
+
+if(e.touches.length === 2){
+lastDistance = getDistance(e.touches);
+}
+
+}
+);
+
+document.addEventListener(
+"touchmove",
+(e)=>{
+
+if(e.touches.length === 2){
+
+e.preventDefault();
+
+const distance =
+getDistance(e.touches);
+
+if(lastDistance){
+
+const diff =
+distance - lastDistance;
+
+currentSize =
+Math.min(300,
+Math.max(50,
+currentSize + diff * 0.3
+));
+
+character.style.width =
+currentSize + "px";
+
+}
+
+lastDistance = distance;
+
+}
+
+},
+{ passive:false }
+);
+
+document.addEventListener(
+"touchend",
+(e)=>{
+
+if(e.touches.length < 2){
+lastDistance = null;
+}
+
+}
+);
+
+/* 2点間の距離を計算 */
+
+function getDistance(touches){
+
+const dx =
+touches[0].clientX -
+touches[1].clientX;
+
+const dy =
+touches[0].clientY -
+touches[1].clientY;
+
+return Math.sqrt(
+dx * dx + dy * dy
+);
+
+}
