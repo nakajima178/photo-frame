@@ -191,11 +191,47 @@ body{
   /* 長押しで保存できるようにする */
 }
 
+/* ボタン並び */
+
+.modal-buttons{
+
+  display: flex;
+
+  gap: 12px;
+
+  justify-content: center;
+
+  margin-top: 20px;
+
+}
+
+/* 保存ボタン */
+
+.save-btn{
+
+  display: inline-block;
+
+  padding: 12px 24px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: #4CAF50;
+
+  color: white;
+
+  font-size: 18px;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+}
+
 /* 閉じるボタン */
 
 .close-btn{
-
-  margin-top: 20px;
 
   padding: 12px 24px;
 
