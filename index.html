@@ -29,10 +29,10 @@ autoplay
 playsinline>
 </video>
 
-<!-- 動かせるキャラ（Cloudinary） -->
-<img
-id="character"
-src="https://res.cloudinary.com/dmiqfgyfs/image/upload/v1780277422/character_zemeqs.png">
+<!-- 動かせるキャラ（canvas化で長押し保存防止） -->
+<canvas
+id="character">
+</canvas>
 
 <!-- 固定フレーム -->
 <img
@@ -84,7 +84,7 @@ id="closeBtn">
 
 </div>
 
-<!-- canvas -->
+<!-- 撮影用canvas -->
 <canvas
 id="canvas"
 style="display:none;">
