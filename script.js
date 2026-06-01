@@ -13,6 +13,7 @@ const ctx             = canvas.getContext("2d");
 const modal           = document.getElementById("modal");
 const result          = document.getElementById("result");
 const closeBtn        = document.getElementById("closeBtn");
+const saveBtn         = document.getElementById("saveBtn");
 
 /* ======================
    変数宣言
@@ -313,7 +314,11 @@ captureBtn.addEventListener("click", () => {
   ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
 
   /* 画像化・表示 */
-  result.src = canvas.toDataURL("image/png");
+  const imageData = canvas.toDataURL("image/png");
+  result.src = imageData;
+
+  /* 保存ボタンにダウンロードURLをセット */
+  saveBtn.href = imageData;
 
   modal.style.display = "flex";
 
