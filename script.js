@@ -4,7 +4,8 @@
 
 const video          = document.getElementById("video");
 const frame          = document.getElementById("frame");
-const character      = document.getElementById("character");
+const character      = document.getElementById("character"); /* canvas要素 */
+const charCtx        = character.getContext("2d");
 const captureBtn     = document.getElementById("captureBtn");
 const changeCameraBtn= document.getElementById("changeCameraBtn");
 const canvas         = document.getElementById("canvas");
@@ -14,38 +15,66 @@ const result         = document.getElementById("result");
 const closeBtn       = document.getElementById("closeBtn");
 
 /* ======================
-   変数宣言（まとめて先頭に）
+   変数宣言
 ====================== */
 
-let cameraMode   = "user";
+let cameraMode        = "user";
 let stream;
 
-let posX         = 100;
-let posY         = 200;
-let isDragging   = false;
-let offsetX      = 0;
-let offsetY      = 0;
+let posX              = 100;
+let posY              = 200;
+let isDragging        = false;
+let offsetX           = 0;
+let offsetY           = 0;
 
-let lastDistance = null;   /* ✅ 先頭で宣言（二重宣言バグ解消） */
-let currentSize  = 120;
+let lastDistance      = null;
+let currentSize       = 120;
 
-let isCameraReady  = false;  /* ✅ カメラ準備フラグ */
-let isCapturing    = false;  /* ✅ 撮影中フラグ（連打防止） */
-let isCameraSwitching = false; /* ✅ 切替中フラグ */
+let isCameraReady     = false;
+let isCapturing       = false;
+let isCameraSwitching = false;
 
 /* ======================
-   画像読み込みエラーハンドリング
+   characterImage（非表示のImgで画像を保持）
+   canvasに描画するためだけに使う
 ====================== */
 
-/* ✅ character.png / frame.png が見つからない場合に警告 */
+const characterImage = new Image();
+characterImage.crossOrigin = "anonymous"; /* Cloudinary CORS対策 */
+characterImage.src = "https://res.cloudinary.com/dmiqfgyfs/image/upload/v1780277422/character_zemeqs.png";
 
-character.addEventListener("error", () => {
-  console.warn("character.png の読み込みに失敗しました");
-});
+/* 画像読み込み完了したらcanvasに描画 */
+characterImage.onload = () => {
+  drawCharacterCanvas();
+};
+
+characterImage.onerror = () => {
+  console.warn("character画像の読み込みに失敗しました");
+};
 
 frame.addEventListener("error", () => {
   console.warn("frame.png の読み込みに失敗しました");
 });
+
+/* ======================
+   characterをcanvasに描画
+====================== */
+
+function drawCharacterCanvas(){
+
+  character.width  = currentSize;
+  character.height = currentSize *
+    (characterImage.naturalHeight / characterImage.naturalWidth);
+
+  charCtx.clearRect(0, 0, character.width, character.height);
+  charCtx.drawImage(
+    characterImage,
+    0, 0,
+    character.width,
+    character.height
+  );
+
+}
 
 /* ======================
    カメラ起動
@@ -53,10 +82,8 @@ frame.addEventListener("error", () => {
 
 async function startCamera(){
 
-  isCameraReady    = false;
+  isCameraReady     = false;
   isCameraSwitching = true;
-
-  /* ✅ 切替中は撮影ボタンを無効化 */
   captureBtn.disabled = true;
 
   if(stream){
@@ -71,11 +98,9 @@ async function startCamera(){
 
     video.srcObject = stream;
 
-    /* フロントカメラなら左右反転 */
     video.style.transform =
       cameraMode === "user" ? "scaleX(-1)" : "scaleX(1)";
 
-    /* ✅ 映像が実際に流れ始めてからフラグを立てる */
     video.onloadedmetadata = () => {
       isCameraReady     = true;
       isCameraSwitching = false;
@@ -84,10 +109,9 @@ async function startCamera(){
 
   }catch(error){
 
-    isCameraSwitching = false;
+    isCameraSwitching   = false;
     captureBtn.disabled = false;
 
-    /* ✅ HTTPS 必須の案内を追加 */
     if(
       error.name === "NotAllowedError" ||
       error.name === "PermissionDeniedError"
@@ -114,7 +138,6 @@ startCamera();
 
 changeCameraBtn.addEventListener("click", () => {
 
-  /* ✅ 切替中は二重実行しない */
   if(isCameraSwitching) return;
 
   cameraMode =
@@ -132,54 +155,32 @@ changeCameraBtn.addEventListener("click", () => {
 character.style.left = posX + "px";
 character.style.top  = posY + "px";
 
-/* ✅ キャラが画面外に出ないようにクランプする関数 */
+/* キャラが画面外に出ないようにクランプ */
 function clampPosition(x, y){
 
-  const area   = document.querySelector(".camera-area")
-                   .getBoundingClientRect();
-  const charW  = character.clientWidth;
-  const charH  = character.clientHeight;
+  const area = document.querySelector(".camera-area")
+                 .getBoundingClientRect();
 
   return {
-    x: Math.min(Math.max(0, x), area.width  - charW),
-    y: Math.min(Math.max(0, y), area.height - charH)
+    x: Math.min(Math.max(0, x), area.width  - character.width),
+    y: Math.min(Math.max(0, y), area.height - character.height)
   };
 
 }
 
-/* タッチ開始
-   character は pointer-events:none のため camera-area で検知 */
+/* タッチ開始 */
+character.addEventListener("touchstart", (e) => {
 
-const cameraArea =
-  document.querySelector(".camera-area");
-
-cameraArea.addEventListener("touchstart", (e) => {
-
-  /* ピンチ開始時に lastDistance を初期化 */
   if(e.touches.length === 2){
     lastDistance = getDistance(e.touches);
     isDragging   = false;
     return;
   }
 
-  /* タッチ座標がキャラの範囲内かチェック */
-  const tx = e.touches[0].clientX;
-  const ty = e.touches[0].clientY;
-
-  const charRect = character.getBoundingClientRect();
-
-  const inChar =
-    tx >= charRect.left &&
-    tx <= charRect.right &&
-    ty >= charRect.top  &&
-    ty <= charRect.bottom;
-
-  if(!inChar) return;
-
   isDragging = true;
 
-  offsetX = tx - posX;
-  offsetY = ty - posY;
+  offsetX = e.touches[0].clientX - posX;
+  offsetY = e.touches[0].clientY - posY;
 
 });
 
@@ -202,7 +203,8 @@ document.addEventListener(
           currentSize + diff * 0.3
         ));
 
-        character.style.width = currentSize + "px";
+        /* サイズ変更後にcanvas再描画 */
+        drawCharacterCanvas();
 
       }
 
@@ -218,7 +220,6 @@ document.addEventListener(
     const rawX = e.touches[0].clientX - offsetX;
     const rawY = e.touches[0].clientY - offsetY;
 
-    /* ✅ 画面外クランプ */
     const clamped = clampPosition(rawX, rawY);
     posX = clamped.x;
     posY = clamped.y;
@@ -260,22 +261,20 @@ function getDistance(touches){
 
 captureBtn.addEventListener("click", () => {
 
-  /* ✅ カメラ未準備・撮影中・切替中はスキップ */
   if(!isCameraReady){
     alert("カメラの準備ができていません。少し待ってから撮影してください。");
     return;
   }
-  if(isCapturing)    return;
+  if(isCapturing)       return;
   if(isCameraSwitching) return;
 
-  isCapturing = true;
+  isCapturing         = true;
   captureBtn.disabled = true;
 
-  /* canvas サイズ */
   canvas.width  = video.videoWidth;
   canvas.height = video.videoHeight;
 
-  /* カメラ描画（フロントカメラなら反転） */
+  /* カメラ描画 */
   ctx.save();
 
   if(cameraMode === "user"){
@@ -287,21 +286,18 @@ captureBtn.addEventListener("click", () => {
 
   ctx.restore();
 
-  /* キャラ描画
-     ✅ getBoundingClientRect() で正確な表示サイズを取得 */
-
+  /* キャラ描画（canvasから直接コピー） */
   const videoRect = video.getBoundingClientRect();
   const charRect  = character.getBoundingClientRect();
 
   const scaleX = canvas.width  / videoRect.width;
   const scaleY = canvas.height / videoRect.height;
 
-  /* videoRect 内でのキャラの相対座標 */
   const relX = charRect.left - videoRect.left;
   const relY = charRect.top  - videoRect.top;
 
   ctx.drawImage(
-    character,
+    character,           /* canvasをそのまま描画ソースに使える */
     relX * scaleX,
     relY * scaleY,
     charRect.width  * scaleX,
@@ -316,8 +312,7 @@ captureBtn.addEventListener("click", () => {
 
   modal.style.display = "flex";
 
-  /* ✅ フラグ解除 */
-  isCapturing = false;
+  isCapturing         = false;
   captureBtn.disabled = false;
 
 });
@@ -331,7 +326,7 @@ closeBtn.addEventListener("click", () => {
 });
 
 /* ======================
-   長押し保存防止
+   result の長押し保存防止
 ====================== */
 
 result.addEventListener("contextmenu", (e) => {
