@@ -330,10 +330,4 @@ closeBtn.addEventListener("click", () => {
   modal.style.display = "none";
 });
 
-/* ======================
-   result の長押し保存防止
-====================== */
-
-result.addEventListener("contextmenu", (e) => {
-  e.preventDefault();
-});
+/* result は長押しで保存できるようにするため何もしない */
