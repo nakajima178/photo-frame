@@ -147,20 +147,39 @@ function clampPosition(x, y){
 
 }
 
-/* タッチ開始 */
-character.addEventListener("touchstart", (e) => {
+/* タッチ開始
+   character は pointer-events:none のため camera-area で検知 */
 
-  /* ✅ ピンチ開始時に lastDistance を初期化 */
+const cameraArea =
+  document.querySelector(".camera-area");
+
+cameraArea.addEventListener("touchstart", (e) => {
+
+  /* ピンチ開始時に lastDistance を初期化 */
   if(e.touches.length === 2){
     lastDistance = getDistance(e.touches);
     isDragging   = false;
     return;
   }
 
+  /* タッチ座標がキャラの範囲内かチェック */
+  const tx = e.touches[0].clientX;
+  const ty = e.touches[0].clientY;
+
+  const charRect = character.getBoundingClientRect();
+
+  const inChar =
+    tx >= charRect.left &&
+    tx <= charRect.right &&
+    ty >= charRect.top  &&
+    ty <= charRect.bottom;
+
+  if(!inChar) return;
+
   isDragging = true;
 
-  offsetX = e.touches[0].clientX - posX;
-  offsetY = e.touches[0].clientY - posY;
+  offsetX = tx - posX;
+  offsetY = ty - posY;
 
 });
 
