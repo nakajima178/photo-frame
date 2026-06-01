@@ -2,17 +2,17 @@
    HTML取得
 ====================== */
 
-const video          = document.getElementById("video");
-const frame          = document.getElementById("frame");
-const character      = document.getElementById("character"); /* canvas要素 */
-const charCtx        = character.getContext("2d");
-const captureBtn     = document.getElementById("captureBtn");
-const changeCameraBtn= document.getElementById("changeCameraBtn");
-const canvas         = document.getElementById("canvas");
-const ctx            = canvas.getContext("2d");
-const modal          = document.getElementById("modal");
-const result         = document.getElementById("result");
-const closeBtn       = document.getElementById("closeBtn");
+const video           = document.getElementById("video");
+const frame           = document.getElementById("frame");
+const character       = document.getElementById("character");
+const charCtx         = character.getContext("2d");
+const captureBtn      = document.getElementById("captureBtn");
+const changeCameraBtn = document.getElementById("changeCameraBtn");
+const canvas          = document.getElementById("canvas");
+const ctx             = canvas.getContext("2d");
+const modal           = document.getElementById("modal");
+const result          = document.getElementById("result");
+const closeBtn        = document.getElementById("closeBtn");
 
 /* ======================
    変数宣言
@@ -30,20 +30,18 @@ let offsetY           = 0;
 let lastDistance      = null;
 let currentSize       = 120;
 
-let isCameraReady     = false;
 let isCapturing       = false;
 let isCameraSwitching = false;
 
 /* ======================
-   characterImage（非表示のImgで画像を保持）
-   canvasに描画するためだけに使う
+   characterImage
 ====================== */
 
 const characterImage = new Image();
-characterImage.crossOrigin = "anonymous"; /* Cloudinary CORS対策 */
-characterImage.src = "https://res.cloudinary.com/dmiqfgyfs/image/upload/v1780277422/character_zemeqs.png";
+characterImage.crossOrigin = "anonymous";
+characterImage.src =
+  "https://res.cloudinary.com/dmiqfgyfs/image/upload/v1780277422/character_zemeqs.png";
 
-/* 画像読み込み完了したらcanvasに描画 */
 characterImage.onload = () => {
   drawCharacterCanvas();
 };
@@ -63,8 +61,10 @@ frame.addEventListener("error", () => {
 function drawCharacterCanvas(){
 
   character.width  = currentSize;
-  character.height = currentSize *
-    (characterImage.naturalHeight / characterImage.naturalWidth);
+  character.height = Math.round(
+    currentSize *
+    (characterImage.naturalHeight / characterImage.naturalWidth)
+  );
 
   charCtx.clearRect(0, 0, character.width, character.height);
   charCtx.drawImage(
@@ -82,8 +82,7 @@ function drawCharacterCanvas(){
 
 async function startCamera(){
 
-  isCameraReady     = false;
-  isCameraSwitching = true;
+  isCameraSwitching   = true;
   captureBtn.disabled = true;
 
   if(stream){
@@ -101,11 +100,17 @@ async function startCamera(){
     video.style.transform =
       cameraMode === "user" ? "scaleX(-1)" : "scaleX(1)";
 
-    video.onloadedmetadata = () => {
-      isCameraReady     = true;
-      isCameraSwitching = false;
-      captureBtn.disabled = false;
-    };
+    /* ✅ loadedmetadata と loadeddata 両方で待つ（どちらか早い方） */
+    await new Promise((resolve) => {
+      if(video.readyState >= 2){
+        resolve();
+      } else {
+        video.addEventListener("loadeddata", resolve, { once: true });
+      }
+    });
+
+    isCameraSwitching   = false;
+    captureBtn.disabled = false;
 
   }catch(error){
 
@@ -178,9 +183,8 @@ character.addEventListener("touchstart", (e) => {
   }
 
   isDragging = true;
-
-  offsetX = e.touches[0].clientX - posX;
-  offsetY = e.touches[0].clientY - posY;
+  offsetX    = e.touches[0].clientX - posX;
+  offsetY    = e.touches[0].clientY - posY;
 
 });
 
@@ -203,7 +207,6 @@ document.addEventListener(
           currentSize + diff * 0.3
         ));
 
-        /* サイズ変更後にcanvas再描画 */
         drawCharacterCanvas();
 
       }
@@ -261,10 +264,12 @@ function getDistance(touches){
 
 captureBtn.addEventListener("click", () => {
 
-  if(!isCameraReady){
+  /* ✅ videoWidth で簡易チェック（isCameraReady フラグ廃止） */
+  if(video.videoWidth === 0 || video.videoHeight === 0){
     alert("カメラの準備ができていません。少し待ってから撮影してください。");
     return;
   }
+
   if(isCapturing)       return;
   if(isCameraSwitching) return;
 
@@ -286,7 +291,7 @@ captureBtn.addEventListener("click", () => {
 
   ctx.restore();
 
-  /* キャラ描画（canvasから直接コピー） */
+  /* キャラ描画 */
   const videoRect = video.getBoundingClientRect();
   const charRect  = character.getBoundingClientRect();
 
@@ -297,7 +302,7 @@ captureBtn.addEventListener("click", () => {
   const relY = charRect.top  - videoRect.top;
 
   ctx.drawImage(
-    character,           /* canvasをそのまま描画ソースに使える */
+    character,
     relX * scaleX,
     relY * scaleY,
     charRect.width  * scaleX,
