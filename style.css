@@ -188,10 +188,7 @@ body{
 
   border-radius: 10px;
 
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  pointer-events: none;  /* 長押し保存メニューを完全に防ぐ */
+  /* 長押しで保存できるようにする */
 }
 
 /* 閉じるボタン */
