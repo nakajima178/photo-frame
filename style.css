@@ -3,10 +3,10 @@
 ====================== */
 
 body{
-margin:0;
-overflow:hidden;
-font-family:sans-serif;
-background:black;
+  margin: 0;
+  overflow: hidden;
+  font-family: sans-serif;
+  background: black;
 }
 
 /* ======================
@@ -15,25 +15,29 @@ background:black;
 
 .camera-area{
 
-position:fixed;
+  position: fixed;
 
-top:0;
-left:0;
+  top: 0;
+  left: 0;
 
-width:100vw;
-height:100vh;
+  width: 100vw;
+  height: 100vh;
 
-overflow:hidden;
+  overflow: hidden;
 }
 
-/* カメラ映像 */
+/* カメラ映像
+   ✅ 重複定義を統合・transform は JS 側で動的に切り替える */
 
 #video{
 
-width:100%;
-height:100%;
+  width: 100%;
+  height: 100%;
 
-object-fit:cover;
+  object-fit: cover;
+
+  /* フロントカメラのデフォルト反転（JS で上書き） */
+  transform: scaleX(-1);
 }
 
 /* ======================
@@ -42,16 +46,21 @@ object-fit:cover;
 
 #character{
 
-position:absolute;
+  position: absolute;
 
-top:200px;
-left:100px;
+  top: 200px;
+  left: 100px;
 
-width:120px;
+  width: 120px;
 
-z-index:5;
+  z-index: 5;
 
-touch-action:none;
+  touch-action: none;
+
+  /* ✅ 長押し時のハイライト・コールアウトを抑制 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* ======================
@@ -60,20 +69,19 @@ touch-action:none;
 
 #frame{
 
-position:absolute;
+  position: absolute;
 
-top:0;
-left:0;
+  top: 0;
+  left: 0;
 
-width:100%;
-height:100%;
+  width: 100%;
+  height: 100%;
 
-/* 🔴修正：coverからfillに変更（フレームが切れなくなる） */
-object-fit:fill;
+  object-fit: fill;
 
-pointer-events:none;
+  pointer-events: none;
 
-z-index:10;
+  z-index: 10;
 }
 
 /* ======================
@@ -82,51 +90,53 @@ z-index:10;
 
 .controls{
 
-position:fixed;
+  position: fixed;
 
-bottom:20px;
-left:0;
+  bottom: 20px;
+  left: 0;
 
-width:100%;
+  width: 100%;
 
-display:flex;
+  display: flex;
 
-justify-content:center;
-align-items:center;
+  justify-content: center;
+  align-items: center;
 
-gap:20px;
+  gap: 20px;
 
-z-index:20;
+  z-index: 20;
 }
 
 /* カメラ切替 */
 
 .circle-btn{
 
-width:70px;
-height:70px;
+  width: 70px;
+  height: 70px;
 
-border-radius:50%;
+  border-radius: 50%;
 
-border:none;
+  border: none;
 
-font-size:28px;
+  font-size: 28px;
 
-background:white;
+  background: white;
+  cursor: pointer;
 }
 
 /* 撮影 */
 
 .shutter-btn{
 
-width:90px;
-height:90px;
+  width: 90px;
+  height: 90px;
 
-border-radius:50%;
+  border-radius: 50%;
 
-background:white;
+  background: white;
 
-border:6px solid #ddd;
+  border: 6px solid #ddd;
+  cursor: pointer;
 }
 
 /* ======================
@@ -135,72 +145,71 @@ border:6px solid #ddd;
 
 .modal{
 
-position:fixed;
+  position: fixed;
 
-top:0;
-left:0;
+  top: 0;
+  left: 0;
 
-width:100%;
-height:100%;
+  width: 100%;
+  height: 100%;
 
-background:rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.7);
 
-display:none;
+  display: none;
 
-justify-content:center;
-align-items:center;
+  justify-content: center;
+  align-items: center;
 
-z-index:100;
+  z-index: 100;
 }
 
 /* 白ボックス */
 
 .modal-content{
 
-width:85%;
-max-width:400px;
+  width: 85%;
+  max-width: 400px;
 
-background:white;
+  background: white;
 
-border-radius:20px;
+  border-radius: 20px;
 
-padding:20px;
+  padding: 20px;
 
-text-align:center;
+  text-align: center;
 }
 
-/* 完成画像 */
+/* 完成画像
+   ✅ 長押しコールアウトを抑制（iOS Safari 対策） */
 
 #result{
 
-width:100%;
+  width: 100%;
 
-border-radius:10px;
+  border-radius: 10px;
+
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;  /* 長押し保存メニューを完全に防ぐ */
 }
 
 /* 閉じるボタン */
 
 .close-btn{
 
-margin-top:20px;
+  margin-top: 20px;
 
-padding:12px 24px;
+  padding: 12px 24px;
 
-border:none;
+  border: none;
 
-border-radius:10px;
+  border-radius: 10px;
 
-background:orange;
+  background: orange;
 
-color:white;
+  color: white;
 
-font-size:18px;
-}
-
-/* フロントカメラのプレビューを反転 */
-#video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  transform:scaleX(-1); /* 追加 */
+  font-size: 18px;
+  cursor: pointer;
 }
