@@ -10,10 +10,7 @@ content="width=device-width, initial-scale=1.0">
 
 <title>Webフォトブース</title>
 
-<!-- CSS -->
-<link
-rel="stylesheet"
-href="style.css">
+<link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -29,28 +26,33 @@ autoplay
 playsinline>
 </video>
 
-<!-- 動かせるキャラ（canvas化で長押し保存防止） -->
-<canvas
-id="character">
-</canvas>
+<!-- 動かせるキャラ -->
+<canvas id="character"></canvas>
 
-<!-- 固定フレーム -->
-<img
-id="frame"
-src="frame.png">
+<!-- 上の帯 -->
+<div class="frame-top">
+  <div class="frame-top-inner">
+    <span class="frame-star">★</span>
+    <span class="frame-group">ポリゴンスター</span>
+    <span class="frame-star">★</span>
+  </div>
+</div>
+
+<!-- 下の帯 -->
+<div class="frame-bottom">
+  <span class="frame-school">中央情報大学校</span>
+</div>
 
 </div>
 
 <!-- ボタン -->
 <div class="controls">
 
-<!-- 撮影 -->
 <button
 class="shutter-btn"
 id="captureBtn">
 </button>
 
-<!-- カメラ切替 -->
 <button
 class="circle-btn"
 id="changeCameraBtn">
@@ -60,9 +62,7 @@ id="changeCameraBtn">
 </div>
 
 <!-- 保存画面 -->
-<div
-class="modal"
-id="modal">
+<div class="modal" id="modal">
 
 <div class="modal-content">
 
@@ -90,12 +90,8 @@ id="closeBtn">
 </div>
 
 <!-- 撮影用canvas -->
-<canvas
-id="canvas"
-style="display:none;">
-</canvas>
+<canvas id="canvas" style="display:none;"></canvas>
 
-<!-- JavaScript -->
 <script src="script.js"></script>
 
 </body>
