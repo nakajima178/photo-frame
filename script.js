@@ -3,7 +3,6 @@
 ====================== */
 
 const video           = document.getElementById("video");
-const frame           = document.getElementById("frame");
 const character       = document.getElementById("character");
 const charCtx         = character.getContext("2d");
 const captureBtn      = document.getElementById("captureBtn");
@@ -50,10 +49,6 @@ characterImage.onload = () => {
 characterImage.onerror = () => {
   console.warn("character画像の読み込みに失敗しました");
 };
-
-frame.addEventListener("error", () => {
-  console.warn("frame.png の読み込みに失敗しました");
-});
 
 /* ======================
    characterをcanvasに描画
@@ -310,8 +305,34 @@ captureBtn.addEventListener("click", () => {
     charRect.height * scaleY
   );
 
-  /* フレーム描画 */
-  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+  /* 帯フレーム描画（CSS帯と同じ見た目をcanvasに再現） */
+  const bandH = Math.round(canvas.height * (72 / window.innerHeight));
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.82)";
+
+  /* 上の帯 */
+  ctx.fillRect(0, 0, canvas.width, bandH);
+
+  /* 下の帯 */
+  ctx.fillRect(0, canvas.height - bandH, canvas.width, bandH);
+
+  /* フォントサイズをcanvasスケールに合わせる */
+  const scale   = canvas.width / window.innerWidth;
+  const fontLg  = Math.round(18 * scale);
+  const fontMd  = Math.round(16 * scale);
+  const starSize= Math.round(18 * scale);
+
+  ctx.textAlign    = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle    = "#ffffff";
+
+  /* 上の帯：★ ポリゴンスター ★ */
+  ctx.font = fontLg + "px sans-serif";
+  ctx.fillText("★ ポリゴンスター ★", canvas.width / 2, bandH / 2);
+
+  /* 下の帯：中央情報大学校 */
+  ctx.font = fontMd + "px sans-serif";
+  ctx.fillText("中央情報大学校", canvas.width / 2, canvas.height - bandH / 2);
 
   /* 画像化・表示 */
   const imageData = canvas.toDataURL("image/png");
