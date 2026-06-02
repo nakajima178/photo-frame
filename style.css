@@ -246,3 +246,87 @@ body{
   font-size: 18px;
   cursor: pointer;
 }
+
+/* ======================
+   上下の帯フレーム
+====================== */
+
+.frame-top{
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 72px;
+
+  background: rgba(0, 0, 0, 0.82);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  z-index: 10;
+}
+
+.frame-top-inner{
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+}
+
+.frame-star{
+
+  color: #ffffff;
+  font-size: 18px;
+  opacity: 0.85;
+
+}
+
+.frame-group{
+
+  color: #ffffff;
+
+  font-size: 18px;
+  font-weight: 500;
+
+  letter-spacing: 4px;
+
+}
+
+.frame-bottom{
+
+  position: absolute;
+
+  bottom: 0;
+  left: 0;
+
+  width: 100%;
+  height: 72px;
+
+  background: rgba(0, 0, 0, 0.82);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  z-index: 10;
+}
+
+.frame-school{
+
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 500;
+
+  letter-spacing: 4px;
+
+}
