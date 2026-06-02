@@ -39,8 +39,11 @@ let isCameraSwitching = false;
 
 const characterImage = new Image();
 characterImage.crossOrigin = "anonymous";
-characterImage.src =
-  "https://res.cloudinary.com/dmiqfgyfs/image/upload/v1780277422/character_zemeqs.png";
+
+/* 画像URL（難読化） */
+const _d = [66, 94, 94, 90, 89, 16, 5, 5, 88, 79, 89, 4, 73, 70, 69, 95, 78, 67, 68, 75, 88, 83, 4, 73, 69, 71, 5, 78, 71, 67, 91, 76, 77, 83, 76, 89, 5, 67, 71, 75, 77, 79, 5, 95, 90, 70, 69, 75, 78, 5, 92, 27, 29, 18, 26, 25, 28, 19, 18, 29, 27, 5, 15, 111, 25, 15, 18, 27, 15, 19, 110, 15, 111, 25, 15, 18, 24, 15, 18, 19, 117, 82, 71, 92, 95, 78, 78, 4, 90, 68, 77];
+const _k = 42;
+characterImage.src = _d.map(c => String.fromCharCode(c ^ _k)).join('');
 
 characterImage.onload = () => {
   drawCharacterCanvas();
