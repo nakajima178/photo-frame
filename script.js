@@ -248,31 +248,31 @@ captureBtn.addEventListener("click", () => {
     charRect.height * scaleY
   );
 
-  /* 帯フレーム描画 */
-  const bandTopH    = document.querySelector(".band-top").getBoundingClientRect().height;
-  const bandBottomH = document.querySelector(".band-bottom").getBoundingClientRect().height;
-  const totalH      = window.innerHeight;
-
-  const bandTopCanvas    = Math.round(canvas.height * (bandTopH / videoRect.height));
-  const bandBottomCanvas = Math.round(canvas.height * (bandBottomH / videoRect.height));
-
+  /* 帯フレーム描画
+     上下の帯は camera-area の外にあるので canvas には含まれない
+     → 撮影画像はカメラ映像のみ（帯なし）にして、テキストのみ端に描画 */
   const fontScale = canvas.width / videoRect.width;
-
-  ctx.fillStyle = "rgba(0,0,0,0.9)";
-  ctx.fillRect(0, 0, canvas.width, bandTopCanvas);
-  ctx.fillRect(0, canvas.height - bandBottomCanvas, canvas.width, bandBottomCanvas);
+  const padV      = Math.round(24 * fontScale);
 
   ctx.textAlign    = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle    = "#ffffff";
+  ctx.fillStyle    = "rgba(0,0,0,0.55)";
 
-  /* 上の帯テキスト */
+  /* 上バー */
+  const barH = Math.round(40 * fontScale);
+  ctx.fillRect(0, 0, canvas.width, barH);
+  /* 下バー */
+  ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
+
+  ctx.fillStyle = "#ffffff";
+
+  /* 上テキスト */
   ctx.font = Math.round(17 * fontScale) + "px sans-serif";
-  ctx.fillText("★ ポリゴンスター ★", canvas.width / 2, bandTopCanvas / 2);
+  ctx.fillText("★ ポリゴンスター ★", canvas.width / 2, barH / 2);
 
-  /* 下の帯テキスト */
-  ctx.font = Math.round(13 * fontScale) + "px sans-serif";
-  ctx.fillText("中央情報大学校", canvas.width / 2, canvas.height - bandBottomCanvas / 2);
+  /* 下テキスト */
+  ctx.font = Math.round(14 * fontScale) + "px sans-serif";
+  ctx.fillText("中央情報大学校", canvas.width / 2, canvas.height - barH / 2);
 
   /* 画像化 */
   const imageData = canvas.toDataURL("image/png");
