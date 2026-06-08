@@ -8,7 +8,6 @@ const character       = document.getElementById("character");
 const charCtx         = character.getContext("2d");
 const captureBtn      = document.getElementById("captureBtn");
 const changeCameraBtn = document.getElementById("changeCameraBtn");
-const undoBtn         = document.getElementById("undoBtn");
 const saveBtn         = document.getElementById("saveBtn");
 const canvas          = document.getElementById("canvas");
 const ctx             = canvas.getContext("2d");
@@ -121,41 +120,7 @@ changeCameraBtn.addEventListener("click", () => {
   startCamera();
 });
 
-/* ======================
-   戻るボタン
-   → プレビューを閉じてカメラに戻る＋キャラをリセット
-====================== */
 
-undoBtn.addEventListener("click", () => {
-
-  if(isPreviewMode){
-
-    /* プレビュー非表示・カメラ再開 */
-    preview.style.display = "none";
-    preview.src           = "";
-    video.style.display   = "block";
-
-    /* キャラをカメラの上に再表示 */
-    character.style.display = "block";
-
-    /* キャラ初期位置リセット */
-    posX        = 100;
-    posY        = 200;
-    currentSize = 120;
-    character.style.left = posX + "px";
-    character.style.top  = posY + "px";
-    drawCharacterCanvas();
-
-    /* ボタン状態リセット */
-    captureBtn.style.display  = "block";
-    saveBtn.style.display     = "none";
-    changeCameraBtn.disabled  = false;
-
-    isPreviewMode = false;
-
-  }
-
-});
 
 /* ======================
    キャラ移動
@@ -243,34 +208,58 @@ captureBtn.addEventListener("click", () => {
   isCapturing         = true;
   captureBtn.disabled = true;
 
-  canvas.width  = video.videoWidth;
-  canvas.height = video.videoHeight;
+  /* ✅ 解像度を1080×1920に固定 */
+  const OUTPUT_W = 1080;
+  const OUTPUT_H = 1920;
 
-  /* カメラ描画 */
-  ctx.save();
-  if(cameraMode === "user"){
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-  }
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  ctx.restore();
+  canvas.width  = OUTPUT_W;
+  canvas.height = OUTPUT_H;
 
-  /* キャラ描画 */
   const videoRect = video.getBoundingClientRect();
   const charRect  = character.getBoundingClientRect();
-  const scaleX    = canvas.width  / videoRect.width;
-  const scaleY    = canvas.height / videoRect.height;
 
+  /* カメラ描画（videoを1080×1920にフィット） */
+  ctx.save();
+  if(cameraMode === "user"){
+    ctx.translate(OUTPUT_W, 0);
+    ctx.scale(-1, 1);
+  }
+
+  /* object-fit:cover と同じ計算でクロップ描画 */
+  const vAspect  = video.videoWidth  / video.videoHeight;
+  const cAspect  = OUTPUT_W / OUTPUT_H;
+  let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
+
+  if(vAspect > cAspect){
+    sw = Math.round(video.videoHeight * cAspect);
+    sx = Math.round((video.videoWidth - sw) / 2);
+  } else {
+    sh = Math.round(video.videoWidth / cAspect);
+    sy = Math.round((video.videoHeight - sh) / 2);
+  }
+
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, OUTPUT_W, OUTPUT_H);
+  ctx.restore();
+
+  /* キャラ描画
+     ✅ 表示サイズではなく characterImage を直接高解像度描画 */
+  const dispScaleX = OUTPUT_W / videoRect.width;
+  const dispScaleY = OUTPUT_H / videoRect.height;
+
+  const charDispW = charRect.width  * dispScaleX;
+  const charDispH = charRect.height * dispScaleY;
+  const charX     = (charRect.left - videoRect.left) * dispScaleX;
+  const charY     = (charRect.top  - videoRect.top)  * dispScaleY;
+
+  /* characterImage を直接描画（canvas経由より高解像度） */
   ctx.drawImage(
-    character,
-    (charRect.left - videoRect.left) * scaleX,
-    (charRect.top  - videoRect.top)  * scaleY,
-    charRect.width  * scaleX,
-    charRect.height * scaleY
+    characterImage,
+    charX, charY,
+    charDispW, charDispH
   );
 
   /* 上下バー描画 */
-  const fontScale = canvas.width / videoRect.width;
+  const fontScale = OUTPUT_W / videoRect.width;
   const barH      = Math.round(40 * fontScale);
 
   ctx.fillStyle = "rgba(0,0,0,0.82)";
