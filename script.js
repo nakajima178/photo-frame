@@ -20,7 +20,7 @@ const modalSaveBtn    = document.getElementById("modalSaveBtn");
    変数宣言
 ====================== */
 
-let cameraMode        = "environment"; /* 最初は外カメラ */
+let cameraMode        = "environment";
 let stream;
 
 let posX              = 100;
@@ -34,7 +34,7 @@ let currentSize       = 120;
 
 let isCapturing       = false;
 let isCameraSwitching = false;
-let isPreviewMode     = false; /* 撮影後の静止画表示中フラグ */
+let isPreviewMode     = false;
 
 /* ======================
    characterImage
@@ -52,15 +52,31 @@ characterImage.onerror = () => console.warn("character画像の読み込みに�
 
 /* ======================
    characterをcanvasに描画
+   ✅ devicePixelRatio対応で高解像度描画
 ====================== */
 
 function drawCharacterCanvas(){
-  character.width  = currentSize;
-  character.height = Math.round(
+
+  const dpr = window.devicePixelRatio || 1;
+
+  /* 表示サイズ */
+  const dispW = currentSize;
+  const dispH = Math.round(
     currentSize * (characterImage.naturalHeight / characterImage.naturalWidth)
   );
-  charCtx.clearRect(0, 0, character.width, character.height);
-  charCtx.drawImage(characterImage, 0, 0, character.width, character.height);
+
+  /* canvas の実ピクセルをdpr倍に */
+  character.width  = dispW * dpr;
+  character.height = dispH * dpr;
+
+  /* CSS上の表示サイズはそのまま */
+  character.style.width  = dispW + "px";
+  character.style.height = dispH + "px";
+
+  charCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  charCtx.clearRect(0, 0, dispW, dispH);
+  charCtx.drawImage(characterImage, 0, 0, dispW, dispH);
+
 }
 
 /* ======================
@@ -79,7 +95,11 @@ async function startCamera(){
   try{
 
     stream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode: cameraMode }
+      video:{
+        facingMode: cameraMode,
+        width:  { ideal: 1920 },
+        height: { ideal: 1080 }
+      }
     });
 
     video.srcObject = stream;
@@ -120,8 +140,6 @@ changeCameraBtn.addEventListener("click", () => {
   startCamera();
 });
 
-
-
 /* ======================
    キャラ移動
 ====================== */
@@ -132,8 +150,8 @@ character.style.top  = posY + "px";
 function clampPosition(x, y){
   const area = document.querySelector(".camera-area").getBoundingClientRect();
   return {
-    x: Math.min(Math.max(0, x), area.width  - character.width),
-    y: Math.min(Math.max(0, y), area.height - character.height)
+    x: Math.min(Math.max(0, x), area.width  - character.clientWidth),
+    y: Math.min(Math.max(0, y), area.height - character.clientHeight)
   };
 }
 
@@ -208,58 +226,37 @@ captureBtn.addEventListener("click", () => {
   isCapturing         = true;
   captureBtn.disabled = true;
 
-  /* ✅ 解像度を1080×1920に固定 */
-  const OUTPUT_W = 1080;
-  const OUTPUT_H = 1920;
-
-  canvas.width  = OUTPUT_W;
-  canvas.height = OUTPUT_H;
+  /* ✅ videoの実解像度をそのまま使う（高解像度を維持） */
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
 
   const videoRect = video.getBoundingClientRect();
   const charRect  = character.getBoundingClientRect();
 
-  /* カメラ描画（videoを1080×1920にフィット） */
+  /* カメラ描画 */
   ctx.save();
   if(cameraMode === "user"){
-    ctx.translate(OUTPUT_W, 0);
+    ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
   }
-
-  /* object-fit:cover と同じ計算でクロップ描画 */
-  const vAspect  = video.videoWidth  / video.videoHeight;
-  const cAspect  = OUTPUT_W / OUTPUT_H;
-  let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
-
-  if(vAspect > cAspect){
-    sw = Math.round(video.videoHeight * cAspect);
-    sx = Math.round((video.videoWidth - sw) / 2);
-  } else {
-    sh = Math.round(video.videoWidth / cAspect);
-    sy = Math.round((video.videoHeight - sh) / 2);
-  }
-
-  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, OUTPUT_W, OUTPUT_H);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   ctx.restore();
 
   /* キャラ描画
-     ✅ 表示サイズではなく characterImage を直接高解像度描画 */
-  const dispScaleX = OUTPUT_W / videoRect.width;
-  const dispScaleY = OUTPUT_H / videoRect.height;
+     ✅ characterImage（元画像）を直接描画して高解像度を維持 */
+  const scaleX = canvas.width  / videoRect.width;
+  const scaleY = canvas.height / videoRect.height;
 
-  const charDispW = charRect.width  * dispScaleX;
-  const charDispH = charRect.height * dispScaleY;
-  const charX     = (charRect.left - videoRect.left) * dispScaleX;
-  const charY     = (charRect.top  - videoRect.top)  * dispScaleY;
-
-  /* characterImage を直接描画（canvas経由より高解像度） */
   ctx.drawImage(
     characterImage,
-    charX, charY,
-    charDispW, charDispH
+    (charRect.left - videoRect.left) * scaleX,
+    (charRect.top  - videoRect.top)  * scaleY,
+    charRect.width  * scaleX,
+    charRect.height * scaleY
   );
 
   /* 上下バー描画 */
-  const fontScale = OUTPUT_W / videoRect.width;
+  const fontScale = canvas.width / videoRect.width;
   const barH      = Math.round(40 * fontScale);
 
   ctx.fillStyle = "rgba(0,0,0,0.82)";
@@ -279,24 +276,20 @@ captureBtn.addEventListener("click", () => {
   /* 画像データ生成 */
   const imageData = canvas.toDataURL("image/png");
 
-  /* ✅ プレビュー表示（モーダルではなくカメラエリアに直接表示） */
+  /* プレビュー表示 */
   preview.src           = imageData;
   preview.style.display = "block";
-
-  /* ビデオとキャラを隠す */
   video.style.display      = "none";
   character.style.display  = "none";
 
-  /* ボタン切替：撮影ボタン非表示・保存ボタン表示 */
+  /* ボタン切替 */
   captureBtn.style.display = "none";
   saveBtn.href             = imageData;
   saveBtn.style.display    = "flex";
-
-  /* カメラ切替を無効化 */
   changeCameraBtn.disabled = true;
 
-  isPreviewMode   = true;
-  isCapturing     = false;
+  isPreviewMode = true;
+  isCapturing   = false;
 
 });
 
