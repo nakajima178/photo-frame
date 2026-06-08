@@ -3,23 +3,25 @@
 ====================== */
 
 const video           = document.getElementById("video");
+const preview         = document.getElementById("preview");
 const character       = document.getElementById("character");
 const charCtx         = character.getContext("2d");
 const captureBtn      = document.getElementById("captureBtn");
 const changeCameraBtn = document.getElementById("changeCameraBtn");
 const undoBtn         = document.getElementById("undoBtn");
+const saveBtn         = document.getElementById("saveBtn");
 const canvas          = document.getElementById("canvas");
 const ctx             = canvas.getContext("2d");
 const modal           = document.getElementById("modal");
 const result          = document.getElementById("result");
 const closeBtn        = document.getElementById("closeBtn");
-const saveBtn         = document.getElementById("saveBtn");
+const modalSaveBtn    = document.getElementById("modalSaveBtn");
 
 /* ======================
    変数宣言
 ====================== */
 
-let cameraMode        = "environment"; /* ✅ 最初は外カメラ */
+let cameraMode        = "environment"; /* 最初は外カメラ */
 let stream;
 
 let posX              = 100;
@@ -33,6 +35,7 @@ let currentSize       = 120;
 
 let isCapturing       = false;
 let isCameraSwitching = false;
+let isPreviewMode     = false; /* 撮影後の静止画表示中フラグ */
 
 /* ======================
    characterImage
@@ -41,18 +44,12 @@ let isCameraSwitching = false;
 const characterImage = new Image();
 characterImage.crossOrigin = "anonymous";
 
-/* 画像URL（難読化） */
 const _d = [66, 94, 94, 90, 89, 16, 5, 5, 88, 79, 89, 4, 73, 70, 69, 95, 78, 67, 68, 75, 88, 83, 4, 73, 69, 71, 5, 78, 71, 67, 91, 76, 77, 83, 76, 89, 5, 67, 71, 75, 77, 79, 5, 95, 90, 70, 69, 75, 78, 5, 92, 27, 29, 18, 26, 25, 28, 19, 18, 29, 27, 5, 15, 111, 25, 15, 18, 27, 15, 19, 110, 15, 111, 25, 15, 18, 24, 15, 18, 19, 117, 82, 71, 92, 95, 78, 78, 4, 90, 68, 77];
 const _k = 42;
 characterImage.src = _d.map(c => String.fromCharCode(c ^ _k)).join('');
 
-characterImage.onload = () => {
-  drawCharacterCanvas();
-};
-
-characterImage.onerror = () => {
-  console.warn("character画像の読み込みに失敗しました");
-};
+characterImage.onload  = () => drawCharacterCanvas();
+characterImage.onerror = () => console.warn("character画像の読み込みに失敗しました");
 
 /* ======================
    characterをcanvasに描画
@@ -87,17 +84,11 @@ async function startCamera(){
     });
 
     video.srcObject = stream;
-
-    /* 外カメラは反転しない・フロントカメラは反転 */
-    video.style.transform =
-      cameraMode === "user" ? "scaleX(-1)" : "scaleX(1)";
+    video.style.transform = cameraMode === "user" ? "scaleX(-1)" : "scaleX(1)";
 
     await new Promise((resolve) => {
-      if(video.readyState >= 2){
-        resolve();
-      } else {
-        video.addEventListener("loadeddata", resolve, { once: true });
-      }
+      if(video.readyState >= 2) resolve();
+      else video.addEventListener("loadeddata", resolve, { once: true });
     });
 
     isCameraSwitching   = false;
@@ -111,12 +102,13 @@ async function startCamera(){
     if(error.name === "NotAllowedError" || error.name === "PermissionDeniedError"){
       alert("カメラの使用が許可されていません。\nブラウザの設定からカメラを許可してください。");
     } else {
-      alert("カメラが起動できません。\n・カメラが接続されているか確認してください。\n・HTTPS環境が必要な場合があります。");
+      alert("カメラが起動できません。\n・HTTPS環境が必要な場合があります。");
     }
+
   }
+
 }
 
-/* 最初に起動 */
 startCamera();
 
 /* ======================
@@ -124,17 +116,45 @@ startCamera();
 ====================== */
 
 changeCameraBtn.addEventListener("click", () => {
-  if(isCameraSwitching) return;
+  if(isCameraSwitching || isPreviewMode) return;
   cameraMode = cameraMode === "user" ? "environment" : "user";
   startCamera();
 });
 
 /* ======================
-   戻るボタン（モーダルを閉じるだけ）
+   戻るボタン
+   → プレビューを閉じてカメラに戻る＋キャラをリセット
 ====================== */
 
 undoBtn.addEventListener("click", () => {
-  modal.style.display = "none";
+
+  if(isPreviewMode){
+
+    /* プレビュー非表示・カメラ再開 */
+    preview.style.display = "none";
+    preview.src           = "";
+    video.style.display   = "block";
+
+    /* キャラをカメラの上に再表示 */
+    character.style.display = "block";
+
+    /* キャラ初期位置リセット */
+    posX        = 100;
+    posY        = 200;
+    currentSize = 120;
+    character.style.left = posX + "px";
+    character.style.top  = posY + "px";
+    drawCharacterCanvas();
+
+    /* ボタン状態リセット */
+    captureBtn.style.display  = "block";
+    saveBtn.style.display     = "none";
+    changeCameraBtn.disabled  = false;
+
+    isPreviewMode = false;
+
+  }
+
 });
 
 /* ======================
@@ -153,6 +173,7 @@ function clampPosition(x, y){
 }
 
 character.addEventListener("touchstart", (e) => {
+  if(isPreviewMode) return;
   if(e.touches.length === 2){
     lastDistance = getDistance(e.touches);
     isDragging   = false;
@@ -166,6 +187,7 @@ character.addEventListener("touchstart", (e) => {
 document.addEventListener(
   "touchmove",
   (e) => {
+    if(isPreviewMode) return;
     if(e.touches.length === 2){
       e.preventDefault();
       const distance = getDistance(e.touches);
@@ -179,9 +201,10 @@ document.addEventListener(
     }
     if(!isDragging) return;
     e.preventDefault();
-    const rawX = e.touches[0].clientX - offsetX;
-    const rawY = e.touches[0].clientY - offsetY;
-    const clamped = clampPosition(rawX, rawY);
+    const clamped = clampPosition(
+      e.touches[0].clientX - offsetX,
+      e.touches[0].clientY - offsetY
+    );
     posX = clamped.x;
     posY = clamped.y;
     character.style.left = posX + "px";
@@ -237,56 +260,59 @@ captureBtn.addEventListener("click", () => {
   const charRect  = character.getBoundingClientRect();
   const scaleX    = canvas.width  / videoRect.width;
   const scaleY    = canvas.height / videoRect.height;
-  const relX      = charRect.left - videoRect.left;
-  const relY      = charRect.top  - videoRect.top;
 
   ctx.drawImage(
     character,
-    relX * scaleX,
-    relY * scaleY,
+    (charRect.left - videoRect.left) * scaleX,
+    (charRect.top  - videoRect.top)  * scaleY,
     charRect.width  * scaleX,
     charRect.height * scaleY
   );
 
-  /* 帯フレーム描画
-     上下の帯は camera-area の外にあるので canvas には含まれない
-     → 撮影画像はカメラ映像のみ（帯なし）にして、テキストのみ端に描画 */
+  /* 上下バー描画 */
   const fontScale = canvas.width / videoRect.width;
-  const padV      = Math.round(24 * fontScale);
+  const barH      = Math.round(40 * fontScale);
+
+  ctx.fillStyle = "rgba(0,0,0,0.82)";
+  ctx.fillRect(0, 0, canvas.width, barH);
+  ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
 
   ctx.textAlign    = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle    = "rgba(0,0,0,0.55)";
+  ctx.fillStyle    = "#ffffff";
 
-  /* 上バー */
-  const barH = Math.round(40 * fontScale);
-  ctx.fillRect(0, 0, canvas.width, barH);
-  /* 下バー */
-  ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
-
-  ctx.fillStyle = "#ffffff";
-
-  /* 上テキスト */
   ctx.font = Math.round(17 * fontScale) + "px sans-serif";
   ctx.fillText("★ ポリゴンスター ★", canvas.width / 2, barH / 2);
 
-  /* 下テキスト */
   ctx.font = Math.round(14 * fontScale) + "px sans-serif";
   ctx.fillText("中央情報大学校", canvas.width / 2, canvas.height - barH / 2);
 
-  /* 画像化 */
+  /* 画像データ生成 */
   const imageData = canvas.toDataURL("image/png");
-  result.src      = imageData;
-  saveBtn.href    = imageData;
 
-  modal.style.display = "flex";
+  /* ✅ プレビュー表示（モーダルではなくカメラエリアに直接表示） */
+  preview.src           = imageData;
+  preview.style.display = "block";
 
-  isCapturing         = false;
-  captureBtn.disabled = false;
+  /* ビデオとキャラを隠す */
+  video.style.display      = "none";
+  character.style.display  = "none";
+
+  /* ボタン切替：撮影ボタン非表示・保存ボタン表示 */
+  captureBtn.style.display = "none";
+  saveBtn.href             = imageData;
+  saveBtn.style.display    = "flex";
+
+  /* カメラ切替を無効化 */
+  changeCameraBtn.disabled = true;
+
+  isPreviewMode   = true;
+  isCapturing     = false;
+
 });
 
 /* ======================
-   閉じる
+   モーダル閉じる
 ====================== */
 
 closeBtn.addEventListener("click", () => {
