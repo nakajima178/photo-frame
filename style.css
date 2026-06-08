@@ -34,7 +34,9 @@ body{
 
 .band-top{
   flex-shrink: 0;
-  height: 72px;
+  height: 10vh;
+  min-height: 60px;
+  max-height: 100px;
   background: #000;
   display: flex;
   flex-direction: column;
@@ -102,7 +104,9 @@ body{
 
 .band-bottom{
   flex-shrink: 0;
-  height: 130px;
+  height: 18vh;
+  min-height: 120px;
+  max-height: 160px;
   background: #000;
   display: flex;
   flex-direction: column;
