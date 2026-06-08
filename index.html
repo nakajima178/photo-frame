@@ -8,10 +8,9 @@
 </head>
 <body>
 
-<!-- 全体ラッパー -->
 <div class="wrapper">
 
-  <!-- 上の余白帯 -->
+  <!-- 上の帯 -->
   <div class="band-top">
     <div class="band-top-inner">
       <span class="band-star">★</span>
@@ -20,20 +19,23 @@
     </div>
   </div>
 
-  <!-- 撮影エリア -->
+  <!-- 撮影・プレビューエリア -->
   <div class="camera-area">
     <video id="video" autoplay playsinline></video>
     <canvas id="character"></canvas>
+    <!-- 撮影後の静止画 -->
+    <img id="preview" style="display:none;">
   </div>
 
-  <!-- 下の余白帯（ボタンエリア） -->
+  <!-- 下の帯 -->
   <div class="band-bottom">
     <span class="band-school">中央情報大学校</span>
     <div class="controls">
       <!-- 戻るボタン -->
       <button class="circle-btn" id="undoBtn">↩</button>
-      <!-- 撮影ボタン -->
+      <!-- 撮影 / 保存ボタン（状態で切替） -->
       <button class="shutter-btn" id="captureBtn"></button>
+      <a id="saveBtn" class="save-btn-circle" style="display:none;" download="photo.png">↓</a>
       <!-- カメラ切替 -->
       <button class="circle-btn" id="changeCameraBtn">⇄</button>
     </div>
@@ -41,20 +43,18 @@
 
 </div>
 
-<!-- 保存モーダル -->
+<!-- モーダル（残す） -->
 <div class="modal" id="modal">
   <div class="modal-content">
     <img id="result">
     <div class="modal-buttons">
-      <a id="saveBtn" class="save-btn" download="photo.png">保存する</a>
+      <a id="modalSaveBtn" class="save-btn" download="photo.png">保存する</a>
       <button class="close-btn" id="closeBtn">閉じる</button>
     </div>
   </div>
 </div>
 
-<!-- 撮影用canvas -->
 <canvas id="canvas" style="display:none;"></canvas>
-
 <script src="script.js"></script>
 </body>
 </html>
