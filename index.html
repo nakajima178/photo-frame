@@ -19,40 +19,64 @@
     </div>
   </div>
 
-  <!-- 撮影・プレビューエリア -->
+  <!-- 撮影エリア -->
   <div class="camera-area">
     <video id="video" autoplay playsinline></video>
     <canvas id="character"></canvas>
-    <!-- 撮影後の静止画 -->
-    <img id="preview" style="display:none;">
   </div>
 
   <!-- 下の帯 -->
   <div class="band-bottom">
     <span class="band-school">中央情報大学校</span>
+
     <div class="controls">
-      <!-- 撮影 / 保存ボタン（状態で切替） -->
-      <button class="shutter-btn" id="captureBtn"></button>
-      <a id="saveBtn" class="save-btn-circle" style="display:none;" download="photo.png">↓</a>
+
       <!-- カメラ切替 -->
-      <button class="circle-btn" id="changeCameraBtn">⇄</button>
+      <button class="circle-btn" id="changeCameraBtn">
+        ⇄
+      </button>
+
+      <!-- 撮影 -->
+      <button class="shutter-btn" id="captureBtn"></button>
+
     </div>
   </div>
 
 </div>
 
-<!-- モーダル（残す） -->
+<!-- モーダル -->
 <div class="modal" id="modal">
+
   <div class="modal-content">
-    <img id="result">
+
+    <img id="result" alt="撮影画像">
+
     <div class="modal-buttons">
-      <a id="modalSaveBtn" class="save-btn" download="photo.png">保存する</a>
-      <button class="close-btn" id="closeBtn">閉じる</button>
+
+      <a
+        id="modalSaveBtn"
+        class="save-btn"
+        download="photo.png"
+      >
+        保存する
+      </a>
+
+      <button
+        class="close-btn"
+        id="retakeBtn"
+      >
+        再撮影
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
 <canvas id="canvas" style="display:none;"></canvas>
+
 <script src="script.js"></script>
+
 </body>
 </html>
