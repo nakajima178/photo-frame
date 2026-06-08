@@ -3,18 +3,20 @@
 ====================== */
 
 const video           = document.getElementById("video");
-const preview         = document.getElementById("preview");
+
 const character       = document.getElementById("character");
 const charCtx         = character.getContext("2d");
 const captureBtn      = document.getElementById("captureBtn");
 const changeCameraBtn = document.getElementById("changeCameraBtn");
-const saveBtn         = document.getElementById("saveBtn");
+
 const canvas          = document.getElementById("canvas");
 const ctx             = canvas.getContext("2d");
 const modal           = document.getElementById("modal");
 const result          = document.getElementById("result");
-const closeBtn        = document.getElementById("closeBtn");
+
 const modalSaveBtn    = document.getElementById("modalSaveBtn");
+const retakeBtn       = document.getElementById("retakeBtn");
+const closeBtn        = document.getElementById("closeBtn");
 
 /* ======================
    変数宣言
@@ -255,26 +257,46 @@ captureBtn.addEventListener("click", () => {
   const imageData = canvas.toDataURL("image/png");
 
   /* プレビュー表示 */
-  preview.src           = imageData;
-  preview.style.display = "block";
-  video.style.display      = "none";
-  character.style.display  = "none";
+/* モーダルへ画像表示 */
+result.src = imageData;
 
-  /* ボタン切替 */
-  captureBtn.style.display = "none";
-  saveBtn.href             = imageData;
-  saveBtn.style.display    = "flex";
-  changeCameraBtn.disabled = true;
+/* 保存リンク設定 */
+modalSaveBtn.href = imageData;
 
+/* モーダル表示 */
+modal.style.display = "flex";
   isPreviewMode = true;
-  isCapturing   = false;
-
 });
 
 /* ======================
    モーダル閉じる
 ====================== */
 
+retakeBtn.addEventListener("click", () => {
+
+  modal.style.display = "none";
+
+  captureBtn.disabled = false;
+
+  isPreviewMode = false;
+
+});
+modalSaveBtn.addEventListener("click", () => {
+
+  setTimeout(() => {
+
+    modal.style.display = "none";
+
+    captureBtn.disabled = false;
+
+    isPreviewMode = false;
+
+  }, 300);
+
+});
+
 closeBtn.addEventListener("click", () => {
   modal.style.display = "none";
+  captureBtn.disabled = false;
+  isPreviewMode = false;
 });
