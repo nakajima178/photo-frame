@@ -1,99 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Webフォトブース</title>
-
 <link rel="stylesheet" href="style.css">
-
 </head>
-
 <body>
 
-<!-- カメラ画面 -->
-<div class="camera-area">
+<!-- 全体ラッパー -->
+<div class="wrapper">
 
-<!-- カメラ -->
-<video
-id="video"
-autoplay
-playsinline>
-</video>
-
-<!-- 動かせるキャラ -->
-<canvas id="character"></canvas>
-
-<!-- 上の帯 -->
-<div class="frame-top">
-  <div class="frame-top-inner">
-    <span class="frame-star">★</span>
-    <span class="frame-group">ポリゴンスター</span>
-    <span class="frame-star">★</span>
+  <!-- 上の余白帯 -->
+  <div class="band-top">
+    <div class="band-top-inner">
+      <span class="band-star">★</span>
+      <span class="band-group">ポリゴンスター</span>
+      <span class="band-star">★</span>
+    </div>
   </div>
-</div>
 
-<!-- 下の帯 -->
-<div class="frame-bottom">
-  <span class="frame-school">中央情報大学校</span>
-</div>
+  <!-- 撮影エリア -->
+  <div class="camera-area">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="character"></canvas>
+  </div>
 
-</div>
-
-<!-- ボタン -->
-<div class="controls">
-
-<button
-class="shutter-btn"
-id="captureBtn">
-</button>
-
-<button
-class="circle-btn"
-id="changeCameraBtn">
-⇄
-</button>
+  <!-- 下の余白帯（ボタンエリア） -->
+  <div class="band-bottom">
+    <span class="band-school">中央情報大学校</span>
+    <div class="controls">
+      <!-- 戻るボタン -->
+      <button class="circle-btn" id="undoBtn">↩</button>
+      <!-- 撮影ボタン -->
+      <button class="shutter-btn" id="captureBtn"></button>
+      <!-- カメラ切替 -->
+      <button class="circle-btn" id="changeCameraBtn">⇄</button>
+    </div>
+  </div>
 
 </div>
 
-<!-- 保存画面 -->
+<!-- 保存モーダル -->
 <div class="modal" id="modal">
-
-<div class="modal-content">
-
-<img id="result">
-
-<div class="modal-buttons">
-
-<a
-id="saveBtn"
-class="save-btn"
-download="photo.png">
-保存する
-</a>
-
-<button
-class="close-btn"
-id="closeBtn">
-閉じる
-</button>
-
-</div>
-
-</div>
-
+  <div class="modal-content">
+    <img id="result">
+    <div class="modal-buttons">
+      <a id="saveBtn" class="save-btn" download="photo.png">保存する</a>
+      <button class="close-btn" id="closeBtn">閉じる</button>
+    </div>
+  </div>
 </div>
 
 <!-- 撮影用canvas -->
 <canvas id="canvas" style="display:none;"></canvas>
 
 <script src="script.js"></script>
-
 </body>
-
 </html>
