@@ -28,7 +28,7 @@ let offsetX           = 0;
 let offsetY           = 0;
 
 let lastDistance      = null;
-let currentSize       = window.innerWidth * 0.35;
+let currentSize       = 300;
 
 let isCapturing       = false;
 let isCameraSwitching = false;
@@ -223,6 +223,10 @@ captureBtn.addEventListener("click", () => {
   /* ✅ キャラ描画: characterImage（元画像）を直接描画して高画質を維持 */
   const scaleX = canvas.width  / videoRect.width;
   const scaleY = canvas.height / videoRect.height;
+
+  /* アンチエイリアスを最高品質に設定 */
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   ctx.drawImage(
     characterImage,
