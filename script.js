@@ -28,7 +28,7 @@ let offsetX           = 0;
 let offsetY           = 0;
 
 let lastDistance      = null;
-let currentSize       = 120;
+let currentSize       = 300;
 
 let isCapturing       = false;
 let isCameraSwitching = false;
