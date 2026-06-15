@@ -3,20 +3,16 @@
 ====================== */
 
 const video           = document.getElementById("video");
-
 const character       = document.getElementById("character");
 const charCtx         = character.getContext("2d");
 const captureBtn      = document.getElementById("captureBtn");
 const changeCameraBtn = document.getElementById("changeCameraBtn");
-
 const canvas          = document.getElementById("canvas");
 const ctx             = canvas.getContext("2d");
 const modal           = document.getElementById("modal");
 const result          = document.getElementById("result");
-
 const modalSaveBtn    = document.getElementById("modalSaveBtn");
 const retakeBtn       = document.getElementById("retakeBtn");
-const closeBtn        = document.getElementById("closeBtn");
 
 /* ======================
    変数宣言
@@ -36,7 +32,6 @@ let currentSize       = 120;
 
 let isCapturing       = false;
 let isCameraSwitching = false;
-let isPreviewMode     = false;
 
 /* ======================
    characterImage
@@ -117,28 +112,20 @@ startCamera();
 ====================== */
 
 changeCameraBtn.addEventListener("click", () => {
-  if(isCameraSwitching || isPreviewMode) return;
+  if(isCameraSwitching) return;
   cameraMode = cameraMode === "user" ? "environment" : "user";
   startCamera();
 });
 
 /* ======================
    キャラ移動
+   ✅ clampを撤廃して画面外も自由に動かせる
 ====================== */
 
 character.style.left = posX + "px";
 character.style.top  = posY + "px";
 
-function clampPosition(x, y){
-  const area = document.querySelector(".camera-area").getBoundingClientRect();
-  return {
-    x: Math.min(Math.max(0, x), area.width  - character.width),
-    y: Math.min(Math.max(0, y), area.height - character.height)
-  };
-}
-
 character.addEventListener("touchstart", (e) => {
-  if(isPreviewMode) return;
   if(e.touches.length === 2){
     lastDistance = getDistance(e.touches);
     isDragging   = false;
@@ -152,13 +139,12 @@ character.addEventListener("touchstart", (e) => {
 document.addEventListener(
   "touchmove",
   (e) => {
-    if(isPreviewMode) return;
     if(e.touches.length === 2){
       e.preventDefault();
       const distance = getDistance(e.touches);
       if(lastDistance){
         const diff = distance - lastDistance;
-        currentSize = Math.min(300, Math.max(50, currentSize + diff * 0.3));
+        currentSize = Math.min(600, Math.max(50, currentSize + diff * 0.3));
         drawCharacterCanvas();
       }
       lastDistance = distance;
@@ -166,12 +152,8 @@ document.addEventListener(
     }
     if(!isDragging) return;
     e.preventDefault();
-    const clamped = clampPosition(
-      e.touches[0].clientX - offsetX,
-      e.touches[0].clientY - offsetY
-    );
-    posX = clamped.x;
-    posY = clamped.y;
+    posX = e.touches[0].clientX - offsetX;
+    posY = e.touches[0].clientY - offsetY;
     character.style.left = posX + "px";
     character.style.top  = posY + "px";
   },
@@ -208,11 +190,26 @@ captureBtn.addEventListener("click", () => {
   isCapturing         = true;
   captureBtn.disabled = true;
 
-  canvas.width  = video.videoWidth;
-  canvas.height = video.videoHeight;
-
   const videoRect = video.getBoundingClientRect();
   const charRect  = character.getBoundingClientRect();
+
+  /* ✅ 縦画面に合わせてcanvasサイズをvideoの表示比率で計算 */
+  const displayAspect = videoRect.width / videoRect.height;
+  const videoAspect   = video.videoWidth / video.videoHeight;
+
+  let srcX = 0, srcY = 0, srcW = video.videoWidth, srcH = video.videoHeight;
+
+  /* object-fit:cover と同じクロップ計算 */
+  if(videoAspect > displayAspect){
+    srcW = Math.round(video.videoHeight * displayAspect);
+    srcX = Math.round((video.videoWidth - srcW) / 2);
+  } else {
+    srcH = Math.round(video.videoWidth / displayAspect);
+    srcY = Math.round((video.videoHeight - srcH) / 2);
+  }
+
+  canvas.width  = srcW;
+  canvas.height = srcH;
 
   /* カメラ描画 */
   ctx.save();
@@ -220,10 +217,10 @@ captureBtn.addEventListener("click", () => {
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
   }
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height);
   ctx.restore();
 
-  /* キャラ描画 */
+  /* ✅ キャラ描画: characterImage（元画像）を直接描画して高画質を維持 */
   const scaleX = canvas.width  / videoRect.width;
   const scaleY = canvas.height / videoRect.height;
 
@@ -235,9 +232,10 @@ captureBtn.addEventListener("click", () => {
     charRect.height * scaleY
   );
 
-  /* 上下バー描画 */
+  /* ✅ 上下バー描画（日本語フォント指定あり） */
   const fontScale = canvas.width / videoRect.width;
   const barH      = Math.round(40 * fontScale);
+  const fontFamily = "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif";
 
   ctx.fillStyle = "rgba(0,0,0,0.82)";
   ctx.fillRect(0, 0, canvas.width, barH);
@@ -247,56 +245,40 @@ captureBtn.addEventListener("click", () => {
   ctx.textBaseline = "middle";
   ctx.fillStyle    = "#ffffff";
 
-  ctx.font = Math.round(17 * fontScale) + "px sans-serif";
+  ctx.font = `${Math.round(17 * fontScale)}px ${fontFamily}`;
   ctx.fillText("★ ポリゴンスター ★", canvas.width / 2, barH / 2);
 
-  ctx.font = Math.round(14 * fontScale) + "px sans-serif";
+  ctx.font = `${Math.round(14 * fontScale)}px ${fontFamily}`;
   ctx.fillText("中央情報大学校", canvas.width / 2, canvas.height - barH / 2);
 
   /* 画像データ生成 */
   const imageData = canvas.toDataURL("image/png");
 
-  /* プレビュー表示 */
-/* モーダルへ画像表示 */
-result.src = imageData;
+  /* ✅ モーダルに表示 */
+  result.src        = imageData;
+  modalSaveBtn.href = imageData;
+  modal.style.display = "flex";
 
-/* 保存リンク設定 */
-modalSaveBtn.href = imageData;
+  /* ✅ フラグ・ボタンを即座にリセット（モーダルは開いたまま） */
+  isCapturing         = false;
+  captureBtn.disabled = false;
 
-/* モーダル表示 */
-modal.style.display = "flex";
-  isPreviewMode = true;
 });
 
 /* ======================
-   モーダル閉じる
+   ✅ 再撮影ボタン（モーダルを閉じるだけ）
 ====================== */
 
 retakeBtn.addEventListener("click", () => {
-
   modal.style.display = "none";
-
-  captureBtn.disabled = false;
-
-  isPreviewMode = false;
-
 });
+
+/* ======================
+   ✅ 保存後もモーダルを閉じる（300ms後）
+====================== */
+
 modalSaveBtn.addEventListener("click", () => {
-
   setTimeout(() => {
-
     modal.style.display = "none";
-
-    captureBtn.disabled = false;
-
-    isPreviewMode = false;
-
   }, 300);
-
-});
-
-closeBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-  captureBtn.disabled = false;
-  isPreviewMode = false;
 });
